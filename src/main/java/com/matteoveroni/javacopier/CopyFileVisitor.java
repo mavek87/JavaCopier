@@ -3,14 +3,22 @@ package com.matteoveroni.javacopier;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import javafx.scene.shape.Path;
 
 /**
  *
  * @author Matteo Veroni
  */
 public class CopyFileVisitor implements FileVisitor<Path> {
+
+    private final Path src;
+    private final Path dest;
+
+    public CopyFileVisitor(Path src, Path dest) {
+        this.src = src;
+        this.dest = dest;
+    }
 
     @Override
     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
@@ -31,5 +39,5 @@ public class CopyFileVisitor implements FileVisitor<Path> {
     public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
 }

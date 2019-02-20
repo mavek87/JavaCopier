@@ -30,7 +30,6 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult preVisitDirectory(Path srcDir, BasicFileAttributes attrs) {
         System.out.println("preVisitDirectory " + srcDir);
-
         Path destDir = dest.resolve(src.relativize(srcDir));
         if (Files.notExists(destDir)) {
             try {
@@ -83,9 +82,9 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         return FileVisitResult.CONTINUE;
     }
 
-    private boolean containsCopyOption(StandardCopyOption copyOption) {
-        for (int i = 0; i < copyOptions.length; i++) {
-            if (copyOptions[i].equals(copyOption)) {
+    private boolean containsCopyOption(StandardCopyOption searchedCopyOption) {
+        for (CopyOption copyOption : copyOptions) {
+            if (copyOption.equals(searchedCopyOption)) {
                 return true;
             }
         }

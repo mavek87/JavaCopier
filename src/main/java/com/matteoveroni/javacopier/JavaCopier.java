@@ -11,12 +11,12 @@ import java.nio.file.Path;
  */
 public class JavaCopier {
 
-    public void copy(Path src, Path dest) throws IOException {
-        Files.walkFileTree(src, new CopyFileVisitor(src, dest));
+    public void copy(Path src, Path dest, boolean preserveAttributes) throws IOException {
+        Files.walkFileTree(src, new CopyFileVisitor(src, dest, preserveAttributes));
     }
 
-    public void copy(File src, File dest) throws IOException {
-       this.copy(src.toPath(), dest.toPath());
+    public void copy(File src, File dest, boolean preserveAttributes) throws IOException {
+        this.copy(src.toPath(), dest.toPath(), preserveAttributes);
     }
 
 }

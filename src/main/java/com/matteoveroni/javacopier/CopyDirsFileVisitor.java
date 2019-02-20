@@ -15,45 +15,48 @@ import java.nio.file.attribute.FileTime;
  *
  * @author Matteo Veroni
  */
-public class CopyFileVisitor implements FileVisitor<Path> {
+public class CopyDirsFileVisitor implements FileVisitor<Path> {
 
     private final Path dest;
     private final Path src;
-    private final boolean preserve;
+    private final CopyOption[] copyOptions;
 
-    public CopyFileVisitor(Path src, Path dest, boolean preserve) {
+    public CopyDirsFileVisitor(Path src, Path dest, CopyOption[] copyOptions) {
         this.src = src;
         this.dest = dest;
-        this.preserve = preserve;
+        this.copyOptions = copyOptions;
     }
 
     @Override
-    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-        System.out.println("preVisitDirectory " + dir);
+    public FileVisitResult preVisitDirectory(Path srcDir, BasicFileAttributes attrs) {
+        System.out.println("preVisitDirectory " + srcDir);
 
 //        CopyOption[] copyOptions = (preserve)
 //            ? new CopyOption[]{StandardCopyOption.COPY_ATTRIBUTES} 
 //            : new CopyOption[0];
 //        try {
-        Path newDir = dest.resolve(src.relativize(dir));
-        Path createdNewDir = Files.createDirectories(newDir);
+        Path destDir = dest.resolve(src.relativize(srcDir));
+//        Path createdNewDir = Files.createDirectories(newDir);
 //        } catch (IOException ex) {
 //            ex.printStackTrace();
 //            return FileVisitResult.SKIP_SUBTREE;
 //        }
+        if (Files.notExists(destDir)) {
+            try {
+                Path createdDirectory = Files.createDirectory(destDir);
+            } catch (IOException ex) {
+                System.err.format("preVisitDirectory - Unable to create directory: %s: %n", dest, ex);
+                return FileVisitResult.SKIP_SUBTREE;
+            }
+        }
         return FileVisitResult.CONTINUE;
     }
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
         System.out.println("visitFile " + file);
-
-        CopyOption[] copyOptions = (preserve)
-            ? new CopyOption[]{StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING}
-            : new CopyOption[]{StandardCopyOption.REPLACE_EXISTING};
-
+        Path newFile = dest.resolve(src.relativize(file));
         try {
-            Path newFile = dest.resolve(src.relativize(file));
             Path createdNewFile = Files.copy(file, newFile, copyOptions);
         } catch (IOException ex) {
             System.err.format("visitFile - Unable to copy: %s: %n", file, ex);
@@ -71,26 +74,32 @@ public class CopyFileVisitor implements FileVisitor<Path> {
             System.err.format("visitFileFailed - Unable to access: %s: %n", file, ex);
         }
         ex.printStackTrace();
-        if (Files.isDirectory(file)) {
-            return FileVisitResult.SKIP_SUBTREE;
-        }
         return FileVisitResult.CONTINUE;
     }
 
     @Override
-    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-        System.out.println("postVisitDirectory " + dir);
+    public FileVisitResult postVisitDirectory(Path srcDir, IOException exc) throws IOException {
+        System.out.println("postVisitDirectory " + srcDir);
 
-        if (exc == null && preserve) {
-            Path newDir = dest.resolve(src.relativize(dir));
+        if (exc == null && containsCopyOption(StandardCopyOption.COPY_ATTRIBUTES)) {
+            Path destDir = dest.resolve(src.relativize(srcDir));
             try {
-                FileTime time = Files.getLastModifiedTime(dir);
-                Files.setLastModifiedTime(dest.resolve(src.relativize(dir)), time);
+                FileTime time = Files.getLastModifiedTime(srcDir);
+                Files.setLastModifiedTime(dest.resolve(src.relativize(srcDir)), time);
             } catch (IOException ex) {
-                System.err.format("Unable to copy all attributes to: %s: %n", newDir, ex);
+                System.err.format("Unable to copy all attributes to: %s: %n", destDir, ex);
             }
         }
         return FileVisitResult.CONTINUE;
+    }
+
+    private boolean containsCopyOption(StandardCopyOption copyOption) {
+        for (int i = 0; i < copyOptions.length; i++) {
+            if (copyOptions[i].equals(copyOption)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

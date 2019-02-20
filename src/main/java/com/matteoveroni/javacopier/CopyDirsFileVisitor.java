@@ -31,16 +31,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     public FileVisitResult preVisitDirectory(Path srcDir, BasicFileAttributes attrs) {
         System.out.println("preVisitDirectory " + srcDir);
 
-//        CopyOption[] copyOptions = (preserve)
-//            ? new CopyOption[]{StandardCopyOption.COPY_ATTRIBUTES} 
-//            : new CopyOption[0];
-//        try {
         Path destDir = dest.resolve(src.relativize(srcDir));
-//        Path createdNewDir = Files.createDirectories(newDir);
-//        } catch (IOException ex) {
-//            ex.printStackTrace();
-//            return FileVisitResult.SKIP_SUBTREE;
-//        }
         if (Files.notExists(destDir)) {
             try {
                 Path createdDirectory = Files.createDirectory(destDir);
@@ -60,7 +51,6 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
             Path createdNewFile = Files.copy(file, newFile, copyOptions);
         } catch (IOException ex) {
             System.err.format("visitFile - Unable to copy: %s: %n", file, ex);
-            ex.printStackTrace();
         }
         return FileVisitResult.CONTINUE;
     }

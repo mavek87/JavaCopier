@@ -1,7 +1,9 @@
 package com.matteoveroni.javacopier;
 
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,6 +16,7 @@ import java.util.Arrays;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @Author: Matteo Veroni
@@ -23,6 +26,9 @@ public class JavaCopierTest {
     private final JavaCopier javaCopier = new JavaCopier();
     private File srcFile;
     private File destFile;
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @After
     public void tearDown() {
@@ -35,8 +41,52 @@ public class JavaCopierTest {
     }
 
     @Test
+    public void copySrcToNullDestFail() throws IOException {
+        srcFile = createTempFileWithStandardContent("srcFile");
+        destFile = null;
+
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage(JavaCopier.ERROR_MSG_SRC_OR_DEST_NULL);
+
+        javaCopier.copy(srcFile, destFile);
+    }
+
+    @Test
+    public void copyNullSrcToDestFail() throws IOException {
+        srcFile = null;
+        destFile = File.createTempFile("destFile", null);
+
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage(JavaCopier.ERROR_MSG_SRC_OR_DEST_NULL);
+
+        javaCopier.copy(srcFile, destFile);
+    }
+
+    @Test
+    public void copyNullSrcToNullDestFail() throws IOException {
+        srcFile = null;
+        destFile = null;
+
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage(JavaCopier.ERROR_MSG_SRC_OR_DEST_NULL);
+
+        javaCopier.copy(srcFile, destFile);
+    }
+
+    @Test
+    public void copyNotCreatedSrcFileToDestFail() throws IOException {
+        srcFile = new File("srcFile");
+        destFile = createTempFileWithStandardContent("destFile");
+
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage(JavaCopier.ERROR_MSG_SRC_MUST_EXIST);
+
+        javaCopier.copy(srcFile, destFile);
+    }
+
+    @Test
     public void copyFileToNotExistingFileWithReplaceCopyOption() throws IOException {
-        srcFile = createTempFileWithContent("srcFile");
+        srcFile = createTempFileWithStandardContent("srcFile");
         destFile = new File("destFile");
 
         javaCopier.copy(srcFile, destFile, StandardCopyOption.REPLACE_EXISTING);
@@ -48,9 +98,9 @@ public class JavaCopierTest {
     }
 
     @Test
-    public void copyFileToExistingFileWithReplaceCopyOption() throws IOException {
-        srcFile = createTempFileWithContent("srcFile");
-        destFile = File.createTempFile("destFile", null);
+    public void copyFileToExistingDestFileWithReplaceCopyOptionOverwrite() throws IOException {
+        srcFile = createTempFileWithContent("srcFile", "src content");
+        destFile = createTempFileWithContent("destFile", "dest content");
 
         javaCopier.copy(srcFile, destFile, StandardCopyOption.REPLACE_EXISTING);
 
@@ -62,17 +112,21 @@ public class JavaCopierTest {
 
     @Test(expected = FileAlreadyExistsException.class)
     public void copyFileToExistingFileWithoutReplaceCopyOptionFails() throws IOException {
-        srcFile = createTempFileWithContent("srcFile");
+        srcFile = createTempFileWithStandardContent("srcFile");
         destFile = File.createTempFile("destFile", null);
 
         javaCopier.copy(srcFile, destFile);
     }
 
-    private File createTempFileWithContent(String prefix) throws IOException {
+    private File createTempFileWithContent(String prefix, String fileContent) throws IOException {
         File file = File.createTempFile(prefix, null);
-        String fileContent = "Standard content";
         Files.write(file.toPath(), fileContent.getBytes());
         return file;
+    }
+
+    private File createTempFileWithStandardContent(String prefix) throws IOException {
+        String standardFileContent = "Standard content";
+        return createTempFileWithContent(prefix, standardFileContent);
     }
 
     private boolean isSameFile(Path file1, Path file2) throws IOException {

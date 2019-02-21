@@ -144,15 +144,19 @@ public class JavaCopierTest {
 
         assertTrue("Error, srcFile is not a canonical file", srcFile.isFile());
         assertTrue("Error, destDir is not a directory", destDir.isDirectory());
-        File[] filesInDestDir = destDir.listFiles();
+        assertTrue("Error, srcFile is not being copied into destDir", isFileInsideDir(srcFile, destDir));
+    }
+
+    private boolean isFileInsideDir(File file, File dir) throws IOException {
+        File[] filesInDestDir = dir.listFiles();
         boolean srcIsCopied = false;
         for (File fileInDestDir : filesInDestDir) {
-            if (isSameFile(fileInDestDir.toPath(), srcFile.toPath())) {
+            if (isSameFile(fileInDestDir.toPath(), file.toPath())) {
                 srcIsCopied = true;
                 break;
             }
         }
-        assertTrue("Error, src is not being copied", srcIsCopied);
+        return srcIsCopied;
     }
 
     private File createTempFileWithContent(String prefix, String fileContent) throws IOException {

@@ -10,11 +10,15 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import com.matteoveroni.javacopier.CopyListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author Matteo Veroni
  */
 public class CopyDirsFileVisitor implements FileVisitor<Path> {
@@ -25,10 +29,26 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     private final Path src;
     private final CopyOption[] copyOptions;
 
-    public CopyDirsFileVisitor(Path src, Path dest, CopyOption[] copyOptions) {
+    private final Optional<CopyListener> copyListener;
+
+    private final int totalFilesToCopy;
+    private final List<Path> filesCopied = new ArrayList<>();
+    private final List<Path> copyErrors = new ArrayList<>();
+
+    public CopyDirsFileVisitor(Path src, Path dest, int totalFilesToCopy, CopyListener copyListener, CopyOption[] copyOptions) {
         this.src = src;
         this.dest = dest;
+        this.totalFilesToCopy = totalFilesToCopy;
         this.copyOptions = copyOptions;
+        if (copyListener == null) {
+            this.copyListener = Optional.empty();
+        } else {
+            this.copyListener = Optional.of(copyListener);
+        }
+    }
+
+    public CopyDirsFileVisitor(Path src, Path dest, int totalFilesToCopy, CopyOption[] copyOptions) {
+        this(src, dest, totalFilesToCopy, null, copyOptions);
     }
 
     @Override
@@ -38,9 +58,17 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         if (Files.notExists(destDir)) {
             try {
                 Path createdDirectory = Files.createDirectory(destDir);
+                if (copyListener.isPresent()) {
+                    filesCopied.add(srcDir);
+                    copyListener.get().onCopyProgress(totalFilesToCopy, filesCopied, copyErrors);
+                }
                 LOG.info("Dest dir " + createdDirectory + " created");
             } catch (IOException ex) {
                 LOG.warn("Unable to create directory: " + dest + ", ex: " + ex);
+                if (copyListener.isPresent()) {
+                    copyErrors.add(srcDir);
+                    copyListener.get().onCopyProgress(totalFilesToCopy, filesCopied, copyErrors);
+                }
                 return FileVisitResult.SKIP_SUBTREE;
             }
         }
@@ -53,8 +81,16 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         Path destFile = calculateDestPath(srcFile);
         try {
             Path createdNewFile = Files.copy(srcFile, destFile, copyOptions);
+            if (copyListener.isPresent()) {
+                filesCopied.add(srcFile);
+                copyListener.get().onCopyProgress(totalFilesToCopy, filesCopied, copyErrors);
+            }
             LOG.info("Dest file " + createdNewFile + " created");
         } catch (IOException ex) {
+            if (copyListener.isPresent()) {
+                copyErrors.add(srcFile);
+                copyListener.get().onCopyProgress(totalFilesToCopy, filesCopied, copyErrors);
+            }
             LOG.warn("Unable to copy: " + srcFile + ", ex: " + ex.getMessage());
         }
         return FileVisitResult.CONTINUE;
@@ -63,6 +99,10 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult visitFileFailed(Path srcFile, IOException ex) {
         LOG.debug("xxx | visit srcFile: " + srcFile + " failed");
+        if (copyListener.isPresent()) {
+            copyErrors.add(srcFile);
+            copyListener.get().onCopyProgress(totalFilesToCopy, filesCopied, copyErrors);
+        }
         if (ex instanceof FileSystemLoopException) {
             LOG.warn("Cycle detected: " + srcFile);
         } else {

@@ -19,21 +19,21 @@ public class JavaCopier {
     static final String ERROR_MSG_SRC_OR_DEST_NULL = "src and dest cannot be null";
     static final String ERROR_MSG_SRC_MUST_EXIST = "src must exist";
     static final String ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE = "cannot copy a directory into a file";
-    private final static Logger LOG = LoggerFactory.getLogger(JavaCopier.class);
+//    private final static Logger LOG = LoggerFactory.getLogger(JavaCopier.class);
 
-    public static final void copy(File src, File dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+    public static void copy(File src, File dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
         copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), null, copyOptions);
     }
 
-    public static final void copy(Path src, Path dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+    public static void copy(Path src, Path dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
         copy(src, dest, null, copyOptions);
     }
 
-    public static final void copy(File src, File dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+    public static void copy(File src, File dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
         copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), copyListener, copyOptions);
     }
 
-    public static final void copy(Path src, Path dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+    public static void copy(Path src, Path dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
         if (src == null || dest == null) {
             throw new IllegalArgumentException(ERROR_MSG_SRC_OR_DEST_NULL);
         }

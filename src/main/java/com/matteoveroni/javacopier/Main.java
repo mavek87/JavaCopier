@@ -17,7 +17,7 @@ public class Main implements CopyListener {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     private static final String SRC_LINUX = "/home/mavek/src/";
     private static final String DEST_LINUX = "/home/mavek/dest/";
-    private static final String SRC_WIN = "C:\\users\\veroni\\vertx";
+    private static final String SRC_WIN = "C:\\users\\veroni\\Documents";
     private static final String DEST_WIN = "C:\\users\\veroni\\dest\\";
 
     private enum OS {WINDOWS, LINUX}

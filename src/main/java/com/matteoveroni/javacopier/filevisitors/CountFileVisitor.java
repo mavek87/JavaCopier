@@ -7,6 +7,9 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * @author Matteo Veroni
+ */
 public class CountFileVisitor implements FileVisitor<Path> {
 
     private final AtomicInteger fileCounter = new AtomicInteger(0);

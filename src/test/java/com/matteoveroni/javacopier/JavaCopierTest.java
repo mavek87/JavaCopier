@@ -17,7 +17,7 @@ import java.util.Arrays;
 import static junit.framework.TestCase.assertTrue;
 
 /**
- * @Author: Matteo Veroni
+ * @author Matteo Veroni
  */
 public class JavaCopierTest {
 

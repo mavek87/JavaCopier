@@ -52,7 +52,7 @@ public class CopyHistoryEvent {
         return successful;
     }
 
-    public void setSuccessful(boolean successful) {
+    public void setSuccesfull(boolean successful) {
         this.successful = successful;
     }
 

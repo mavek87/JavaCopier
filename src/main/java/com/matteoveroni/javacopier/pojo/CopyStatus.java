@@ -18,32 +18,37 @@ public class CopyStatus {
         .registerTypeHierarchyAdapter(Path.class, new PathToGsonConverter())
         .create();
 
-    public enum State {
-        COMPLETED, RUNNING, COMPLETED_WITH_ERRORS;
+    public enum CopyState {
+        RUNNING, DONE;
+    }
+
+    public enum CopyResult {
+        SUCCESFULL, FAILED, PARTIAL
     }
 
     private final Path src;
     private final Path dest;
-    private final CopyOption[] copyOptions;
-    private final double copyPercentage;
-    private final int totalFileToCopy;
+    private final int totalFiles;
     private final List<Path> filesCopied;
     private final List<Path> copyErrors;
     private final CopyHistory copyHistory;
-    private final State copyState;
+    private double copyPercentage = 0.0;
+    private CopyResult copyResult = null;
+    private CopyState copyState = null;
+    private final CopyOption[] copyOptions;
 
-    public CopyStatus(Path src, Path dest, State copyState, int totalFileToCopy, List<Path> filesCopied, List<Path> copyErrors, CopyHistory copyHistory, CopyOption... copyOptions) {
+    public CopyStatus(Path src, Path dest, CopyState copyState, int totalFiles, List<Path> filesCopied, List<Path> copyErrors, CopyHistory copyHistory, CopyOption... copyOptions) {
         this.src = src;
         this.dest = dest;
         this.copyState = copyState;
-        this.totalFileToCopy = totalFileToCopy;
+        this.totalFiles = totalFiles;
         this.filesCopied = filesCopied;
         this.copyErrors = copyErrors;
         this.copyHistory = copyHistory;
         this.copyOptions = copyOptions;
+        this.copyResult = copyResult;
         switch (copyState) {
-            case COMPLETED:
-            case COMPLETED_WITH_ERRORS:
+            case DONE:
                 this.copyPercentage = 100;
                 break;
             case RUNNING:
@@ -51,11 +56,6 @@ public class CopyStatus {
                 this.copyPercentage = calculateCopyPercentage();
                 break;
         }
-    }
-
-    private double calculateCopyPercentage() {
-        int numberOfAnalyzedFiles = (filesCopied.size() + copyErrors.size());
-        return ((double) (numberOfAnalyzedFiles) / totalFileToCopy) * 100;
     }
 
     public Path getSrc() {
@@ -66,10 +66,6 @@ public class CopyStatus {
         return dest;
     }
 
-    public State getCopyState() {
-        return copyState;
-    }
-
     public double getCopyPercentage() {
         return copyPercentage;
     }
@@ -78,8 +74,8 @@ public class CopyStatus {
         return String.format("%.0f", copyPercentage) + "%";
     }
 
-    public int getTotalFileToCopy() {
-        return totalFileToCopy;
+    public int getTotalFiles() {
+        return totalFiles;
     }
 
     public List<Path> getFilesCopied() {
@@ -94,6 +90,14 @@ public class CopyStatus {
         return copyHistory;
     }
 
+    public CopyState getCopyState() {
+        return copyState;
+    }
+
+    public CopyResult getCopyResult() {
+        return copyResult;
+    }
+
     public CopyOption[] getCopyOptions() {
         return copyOptions;
     }
@@ -101,5 +105,10 @@ public class CopyStatus {
     @Override
     public String toString() {
         return gson.toJson(this);
+    }
+
+    private double calculateCopyPercentage() {
+        int numberOfAnalyzedFiles = copyHistory.getHistory().size();
+        return ((double) (numberOfAnalyzedFiles) / totalFiles) * 100;
     }
 }

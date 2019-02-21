@@ -55,33 +55,33 @@ public class JavaCopier {
         Integer totalFilesToCopy = calculateFilesCount(src);
         LOG.debug("number of files to copy: " + totalFilesToCopy);
 
-        CopyStatus finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, new ArrayList<>(), new ArrayList<>(), copyHistory, copyOptions);
+        CopyStatus finalCopyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.RUNNING, totalFilesToCopy, new ArrayList<>(), new ArrayList<>(), copyHistory, copyOptions);
         if (src.toFile().isFile() && (Files.notExists(dest) || dest.toFile().isFile())) {
             try {
                 Files.copy(src, dest, copyOptions);
                 copyHistory.addEvent(new CopyHistoryEvent(src, dest, true, null));
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), copyHistory, copyOptions);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), copyHistory, copyOptions);
             } catch (IOException ex) {
                 copyHistory.addEvent(new CopyHistoryEvent(src, dest, false, ex));
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED_WITH_ERRORS, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), copyHistory, copyOptions);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), copyHistory, copyOptions);
             }
         } else if (src.toFile().isFile() && dest.toFile().isDirectory()) {
             try {
                 Files.copy(src, Paths.get(dest + File.separator + src.toFile().getName()), copyOptions);
                 copyHistory.addEvent(new CopyHistoryEvent(src, dest, true, null));
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), copyHistory, copyOptions);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), copyHistory, copyOptions);
             } catch (IOException ex) {
                 copyHistory.addEvent(new CopyHistoryEvent(src, dest, false, ex));
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED_WITH_ERRORS, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), copyHistory, copyOptions);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), copyHistory, copyOptions);
             }
         } else if (src.toFile().isDirectory() && (Files.notExists(dest) || dest.toFile().isDirectory())) {
             CopyDirsFileVisitor copyDirsFileVisitor = new CopyDirsFileVisitor(src, dest, totalFilesToCopy, (copyListener == null) ? Optional.empty() : Optional.of(copyListener), copyOptions);
             try {
                 Files.walkFileTree(src, copyDirsFileVisitor);
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED, totalFilesToCopy, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyDirsFileVisitor.getCopyHistory(), copyOptions);
             } catch (IOException ex) {
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED_WITH_ERRORS, totalFilesToCopy, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyDirsFileVisitor.getCopyHistory(), copyOptions);
+                LOG.debug(ex.toString());
             }
+            finalCopyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyDirsFileVisitor.getCopyHistory(), copyOptions);
         } else {
             throw new IllegalArgumentException(ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
         }

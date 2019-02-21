@@ -2,3 +2,5 @@
 /.gradle/
 /dist/
 /nbproject/
+/.idea/
+JavaCopier.iml

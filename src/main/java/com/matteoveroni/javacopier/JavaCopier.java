@@ -2,6 +2,8 @@ package com.matteoveroni.javacopier;
 
 import com.matteoveroni.javacopier.filevisitors.CopyDirsFileVisitor;
 import com.matteoveroni.javacopier.filevisitors.CountFilesVisitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +14,8 @@ import java.util.Optional;
  * @author Matteo Veroni
  */
 public class JavaCopier {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JavaCopier.class);
 
     public static final CopyOption[] STANDARD_COPY_OPTIONS = new CopyOption[]{StandardCopyOption.COPY_ATTRIBUTES};
     static final String ERROR_MSG_SRC_OR_DEST_NULL = "src and dest cannot be null";
@@ -40,8 +44,9 @@ public class JavaCopier {
         }
         copyOptions = (copyOptions.length == 0) ? STANDARD_COPY_OPTIONS : copyOptions;
 
-        Integer totalFilesToCopy = calculateFilesToCopy(src);
-//        LOG.debug("totalFilesToCopy: " + totalFilesToCopy);
+        LOG.debug("calculating number of files to copy");
+        Integer totalFilesToCopy = calculateFilesCount(src);
+        LOG.debug("number of files to copy: " + totalFilesToCopy);
 
         if (src.toFile().isFile() && (Files.notExists(dest) || dest.toFile().isFile())) {
             Files.copy(src, dest, copyOptions);
@@ -54,7 +59,7 @@ public class JavaCopier {
         }
     }
 
-    private static Integer calculateFilesToCopy(Path src) throws IOException {
+    private static Integer calculateFilesCount(Path src) throws IOException {
         CountFilesVisitor fileCounter = new CountFilesVisitor();
         Files.walkFileTree(src, fileCounter);
         return fileCounter.getFileCount();

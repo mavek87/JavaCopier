@@ -39,6 +39,18 @@ public class JavaCopierTest {
     }
 
     @Test
+    public void copySrcDirIntoFileDestFail() throws IOException {
+        srcFile = new File("srcFile");
+        srcFile.mkdir();
+        destFile = createTempFileWithStandardContent("destFile");
+
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage(JavaCopier.ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
+
+        javaCopier.copy(srcFile, destFile);
+    }
+
+    @Test
     public void copySrcToNullDestFail() throws IOException {
         srcFile = createTempFileWithStandardContent("srcFile");
         destFile = null;

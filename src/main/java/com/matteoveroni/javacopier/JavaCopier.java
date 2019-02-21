@@ -17,6 +17,7 @@ public class JavaCopier {
 
     static final String ERROR_MSG_SRC_OR_DEST_NULL = "src and dest cannot be null";
     static final String ERROR_MSG_SRC_MUST_EXIST = "src must exist";
+    static final String ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE = "cannot copy a directory into a file";
 
     public void copy(File src, File dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
         this.copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), copyOptions);
@@ -37,7 +38,7 @@ public class JavaCopier {
         } else if (src.toFile().isDirectory() && (Files.notExists(dest) || dest.toFile().isDirectory())) {
             Files.walkFileTree(src, new CopyDirsFileVisitor(src, dest, copyOptions));
         } else {
-            throw new IllegalArgumentException("cannot copy a directory into a file");
+            throw new IllegalArgumentException(ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
         }
     }
 }

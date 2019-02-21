@@ -24,6 +24,8 @@ public class JavaCopierTest {
     private final JavaCopier javaCopier = new JavaCopier();
     private File srcFile;
     private File destFile;
+    private File srcDir;
+    private File destDir;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -36,18 +38,12 @@ public class JavaCopierTest {
         if (destFile != null && destFile.exists()) {
             destFile.delete();
         }
-    }
-
-    @Test
-    public void copySrcDirIntoFileDestFail() throws IOException {
-        srcFile = new File("srcFile");
-        srcFile.mkdir();
-        destFile = createTempFileWithStandardContent("destFile");
-
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(JavaCopier.ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
-
-        javaCopier.copy(srcFile, destFile);
+        if (srcDir != null && srcDir.exists()) {
+            srcDir.delete();
+        }
+        if (destDir != null && destDir.exists()) {
+            destDir.delete();
+        }
     }
 
     @Test
@@ -95,6 +91,18 @@ public class JavaCopierTest {
     }
 
     @Test
+    public void copySrcDirIntoFileDestFail() throws IOException {
+        srcDir = new File("srcDir");
+        srcDir.mkdir();
+        destFile = createTempFileWithStandardContent("destFile");
+
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage(JavaCopier.ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
+
+        javaCopier.copy(srcDir, destFile);
+    }
+
+    @Test
     public void copyFileToNotExistingFileWithReplaceCopyOption() throws IOException {
         srcFile = createTempFileWithStandardContent("srcFile");
         destFile = new File("destFile");
@@ -124,6 +132,27 @@ public class JavaCopierTest {
         destFile = File.createTempFile("destFile", null);
 
         javaCopier.copy(srcFile, destFile);
+    }
+
+    @Test
+    public void copyFileToDir() throws IOException {
+        srcFile = createTempFileWithStandardContent("srcFile");
+        destDir = new File("destDir");
+        destDir.mkdir();
+
+        javaCopier.copy(srcFile, destDir);
+
+        assertTrue("Error, srcFile is not a canonical file", srcFile.isFile());
+        assertTrue("Error, destDir is not a directory", destDir.isDirectory());
+        File[] filesInDestDir = destDir.listFiles();
+        boolean srcIsCopied = false;
+        for (File fileInDestDir : filesInDestDir) {
+            if (isSameFile(fileInDestDir.toPath(), srcFile.toPath())) {
+                srcIsCopied = true;
+                break;
+            }
+        }
+        assertTrue("Error, src is not being copied", srcIsCopied);
     }
 
     private File createTempFileWithContent(String prefix, String fileContent) throws IOException {

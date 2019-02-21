@@ -16,13 +16,15 @@ public class JavaCopier {
 
     public static final CopyOption[] STANDARD_COPY_OPTIONS = new CopyOption[]{StandardCopyOption.COPY_ATTRIBUTES};
 
-    public void copy(Path src, Path dest, CopyOption... copyOptions) throws IOException {
+    public void copy(File src, File dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+        this.copy(src.toPath(), dest.toPath(), copyOptions);
+    }
+
+    public void copy(Path src, Path dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
         if (Files.notExists(src) || Files.notExists(dest)) {
             throw new IllegalArgumentException("src and dest must exist");
         }
-
         copyOptions = (copyOptions.length == 0) ? STANDARD_COPY_OPTIONS : copyOptions;
-
         if (src.toFile().isFile() && dest.toFile().isFile()) {
             Files.copy(src, dest, copyOptions);
         } else if (src.toFile().isFile() && dest.toFile().isDirectory()) {
@@ -33,9 +35,4 @@ public class JavaCopier {
             throw new IllegalArgumentException("cannot copy a directory into a file");
         }
     }
-
-    public void copy(File src, File dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
-        this.copy(src.toPath(), dest.toPath(), copyOptions);
-    }
-
 }

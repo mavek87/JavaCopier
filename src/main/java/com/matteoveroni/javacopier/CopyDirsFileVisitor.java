@@ -30,7 +30,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult preVisitDirectory(Path srcDir, BasicFileAttributes attrs) {
         System.out.println("preVisitDirectory " + srcDir);
-        Path destDir = dest.resolve(src.relativize(srcDir));
+        Path destDir = calculateDestPath(srcDir);
         if (Files.notExists(destDir)) {
             try {
                 Path createdDirectory = Files.createDirectory(destDir);
@@ -43,24 +43,24 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     }
 
     @Override
-    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-        System.out.println("visitFile " + file);
-        Path newFile = dest.resolve(src.relativize(file));
+    public FileVisitResult visitFile(Path srcFile, BasicFileAttributes attrs) {
+        System.out.println("visitFile " + srcFile);
+        Path destFile = calculateDestPath(srcFile);
         try {
-            Path createdNewFile = Files.copy(file, newFile, copyOptions);
+            Path createdNewFile = Files.copy(srcFile, destFile, copyOptions);
         } catch (IOException ex) {
-            System.err.format("visitFile - Unable to copy: %s: %n", file, ex);
+            System.err.format("visitFile - Unable to copy: %s: %n", srcFile, ex);
         }
         return FileVisitResult.CONTINUE;
     }
 
     @Override
-    public FileVisitResult visitFileFailed(Path file, IOException ex) {
-        System.out.println("visitFileFailed " + file);
+    public FileVisitResult visitFileFailed(Path srcFile, IOException ex) {
+        System.out.println("visitFileFailed " + srcFile);
         if (ex instanceof FileSystemLoopException) {
-            System.err.println("Cycle detected: " + file);
+            System.err.println("Cycle detected: " + srcFile);
         } else {
-            System.err.format("visitFileFailed - Unable to access: %s: %n", file, ex);
+            System.err.format("visitFileFailed - Unable to access: %s: %n", srcFile, ex);
         }
         ex.printStackTrace();
         return FileVisitResult.CONTINUE;
@@ -69,17 +69,24 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult postVisitDirectory(Path srcDir, IOException exc) throws IOException {
         System.out.println("postVisitDirectory " + srcDir);
-
         if (exc == null && containsCopyOption(StandardCopyOption.COPY_ATTRIBUTES)) {
-            Path destDir = dest.resolve(src.relativize(srcDir));
-            try {
-                FileTime time = Files.getLastModifiedTime(srcDir);
-                Files.setLastModifiedTime(dest.resolve(src.relativize(srcDir)), time);
-            } catch (IOException ex) {
-                System.err.format("Unable to copy all attributes to: %s: %n", destDir, ex);
-            }
+            copyAllAttributesFromSrcToDestDirIfNeeded(srcDir);
         }
         return FileVisitResult.CONTINUE;
+    }
+
+    private void copyAllAttributesFromSrcToDestDirIfNeeded(Path srcDir) {
+        Path destDir = calculateDestPath(srcDir);
+        try {
+            FileTime time = Files.getLastModifiedTime(srcDir);
+            Files.setLastModifiedTime(destDir, time);
+        } catch (IOException ex) {
+            System.err.format("Unable to copy all attributes to: %s: %n", destDir, ex);
+        }
+    }
+
+    private Path calculateDestPath(Path srcPath) {
+        return dest.resolve(src.relativize(srcPath));
     }
 
     private boolean containsCopyOption(StandardCopyOption searchedCopyOption) {

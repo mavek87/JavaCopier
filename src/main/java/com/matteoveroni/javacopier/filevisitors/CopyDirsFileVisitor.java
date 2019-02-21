@@ -126,7 +126,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         try {
             FileTime time = Files.getLastModifiedTime(srcDir);
             Files.setLastModifiedTime(destDir, time);
-            LOG.info("Dest dir " + destDir + " attributes copied from srcDir" + srcDir);
+            LOG.info("Dest dir " + destDir + " attributes copied from srcDir " + srcDir);
         } catch (IOException ex) {
             LOG.warn("Unable to copy all attributes to: " + destDir + ", ex: " + ex.getMessage());
         }

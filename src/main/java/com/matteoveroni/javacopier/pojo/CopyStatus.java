@@ -1,14 +1,22 @@
 package com.matteoveroni.javacopier.pojo;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.matteoveroni.javacopier.gsonconverters.PathToGsonConverter;
+
 import java.nio.file.CopyOption;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * @author Matteo Veroni
  */
 public class CopyStatus {
+
+    private transient final Gson gson = new GsonBuilder()
+//            .registerTypeAdapter(Path.class, new PathToGsonConverter())
+            .registerTypeHierarchyAdapter(Path.class, new PathToGsonConverter())
+            .create();
 
     public enum State {
         COMPLETED, RUNNING, COMPLETED_WITH_ERRORS;
@@ -31,7 +39,16 @@ public class CopyStatus {
         this.filesCopied = filesCopied;
         this.copyErrors = copyErrors;
         this.copyOptions = copyOptions;
-        this.copyPercentage = calculateCopyPercentage();
+        switch (copyState) {
+            case COMPLETED:
+            case COMPLETED_WITH_ERRORS:
+                this.copyPercentage = 100;
+                break;
+            case RUNNING:
+            default:
+                this.copyPercentage = calculateCopyPercentage();
+                break;
+        }
     }
 
     private double calculateCopyPercentage() {
@@ -77,15 +94,6 @@ public class CopyStatus {
 
     @Override
     public String toString() {
-        return "CopyStatus{" +
-                "src=" + src +
-                ", dest=" + dest +
-                ", copyOptions=" + Arrays.toString(copyOptions) +
-                ", copyState=" + copyState +
-                ", copyPercentage=" + copyPercentage +
-                ", totalFileToCopy=" + totalFileToCopy +
-                ", filesCopied=" + filesCopied +
-                ", copyErrors=" + copyErrors +
-                '}';
+        return gson.toJson(this);
     }
 }

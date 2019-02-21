@@ -17,8 +17,8 @@ public class Main implements CopyListener {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     private static final String SRC_LINUX = "/home/mavek/src/";
     private static final String DEST_LINUX = "/home/mavek/dest/";
-    private static final String SRC_WIN = "C:\\users\\veroni\\Documents";
-    private static final String DEST_WIN = "C:\\users\\veroni\\dest\\";
+    private static final String SRC_WIN = "C:\\users\\veroni\\vertx";
+    private static final String DEST_WIN = "C:\\users\\veroni\\dest2\\";
 
     private enum OS {WINDOWS, LINUX}
 
@@ -45,8 +45,8 @@ public class Main implements CopyListener {
                 throw new RuntimeException("Unknown OS");
         }
 
-        JavaCopier.copy(srcPath, destPath, this, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
-//        jc.copy(srcPath, destPath);
+//        JavaCopier.copy(srcPath, destPath, this, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+        JavaCopier.copy(srcPath, destPath, this);
     }
 
     @Override

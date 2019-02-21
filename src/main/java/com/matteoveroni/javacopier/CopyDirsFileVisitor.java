@@ -33,11 +33,12 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
 
     @Override
     public FileVisitResult preVisitDirectory(Path srcDir, BasicFileAttributes attrs) {
-        LOG.debug("preVisitDirectory " + srcDir);
+        LOG.debug("+++ | pre visit srcDir: " + srcDir);
         Path destDir = calculateDestPath(srcDir);
         if (Files.notExists(destDir)) {
             try {
                 Path createdDirectory = Files.createDirectory(destDir);
+                LOG.info("Dest dir " + createdDirectory + " created");
             } catch (IOException ex) {
                 LOG.warn("Unable to create directory: " + dest + ", ex: " + ex);
                 return FileVisitResult.SKIP_SUBTREE;
@@ -48,10 +49,11 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFile(Path srcFile, BasicFileAttributes attrs) {
-        LOG.debug("visitFile " + srcFile);
+        LOG.debug("*** | visit srcFile: " + srcFile);
         Path destFile = calculateDestPath(srcFile);
         try {
             Path createdNewFile = Files.copy(srcFile, destFile, copyOptions);
+            LOG.info("Dest file " + createdNewFile + " created");
         } catch (IOException ex) {
             LOG.warn("Unable to copy: " + srcFile + ", ex: " + ex.getMessage());
         }
@@ -60,7 +62,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFileFailed(Path srcFile, IOException ex) {
-        LOG.debug("visitFileFailed " + srcFile);
+        LOG.debug("xxx | visit srcFile: " + srcFile + " failed");
         if (ex instanceof FileSystemLoopException) {
             LOG.warn("Cycle detected: " + srcFile);
         } else {
@@ -71,7 +73,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
 
     @Override
     public FileVisitResult postVisitDirectory(Path srcDir, IOException exc) {
-        LOG.debug("postVisitDirectory " + srcDir);
+        LOG.debug("--- | post visit srcDir: " + srcDir);
         if (exc == null && containsCopyOption(StandardCopyOption.COPY_ATTRIBUTES)) {
             copyAllAttributesFromSrcToDestDirIfNeeded(srcDir);
         }
@@ -83,6 +85,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         try {
             FileTime time = Files.getLastModifiedTime(srcDir);
             Files.setLastModifiedTime(destDir, time);
+            LOG.info("Dest dir " + destDir + " attributes copied from srcDir" + srcDir);
         } catch (IOException ex) {
             LOG.warn("Unable to copy all attributes to: " + destDir + ", ex: " + ex.getMessage());
         }

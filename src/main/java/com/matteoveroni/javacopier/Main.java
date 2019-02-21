@@ -16,6 +16,8 @@ public class Main {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     private static final String SRC_LINUX = "/home/mavek/src/";
     private static final String DEST_LINUX = "/home/mavek/dest/";
+    private static final String SRC_WIN = "C:\\users\\veroni\\src\\";
+    private static final String DEST_WIN = "C:\\users\\veroni\\dest\\";
 
     public static void main(String[] args) throws IOException {
         LOG.debug("MAIN");

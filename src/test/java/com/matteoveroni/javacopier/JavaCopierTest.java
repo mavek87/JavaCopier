@@ -15,7 +15,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @Author: Matteo Veroni
@@ -93,7 +92,6 @@ public class JavaCopierTest {
         assertTrue("Error, srcFile is not a canonical file", srcFile.isFile());
         assertTrue("Error, destFile is not a canonical file", destFile.isFile());
         assertTrue(isSameFile(srcFile.toPath(), destFile.toPath()));
-        assertEquals(readFileContent(srcFile.toPath()), readFileContent(destFile.toPath()));
     }
 
     @Test
@@ -106,7 +104,6 @@ public class JavaCopierTest {
         assertTrue("Error, srcFile is not a canonical file", srcFile.isFile());
         assertTrue("Error, destFile is not a canonical file", destFile.isFile());
         assertTrue(isSameFile(srcFile.toPath(), destFile.toPath()));
-        assertEquals(readFileContent(srcFile.toPath()), readFileContent(destFile.toPath()));
     }
 
     @Test(expected = FileAlreadyExistsException.class)

@@ -1,5 +1,7 @@
 package com.matteoveroni.javacopier;
 
+import com.matteoveroni.javacopier.filevisitors.CopyDirsFileVisitor;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.CopyOption;

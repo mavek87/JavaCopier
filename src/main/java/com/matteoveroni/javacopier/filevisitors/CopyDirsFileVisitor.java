@@ -1,4 +1,4 @@
-package com.matteoveroni.javacopier;
+package com.matteoveroni.javacopier.filevisitors;
 
 import java.io.IOException;
 import java.nio.file.CopyOption;

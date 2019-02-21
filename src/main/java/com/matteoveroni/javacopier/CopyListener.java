@@ -1,11 +1,10 @@
 package com.matteoveroni.javacopier;
 
-import java.nio.file.Path;
-import java.util.List;
+import com.matteoveroni.javacopier.pojo.CopyStatus;
 
 /**
  * @author Matteo Veroni
  */
 public interface CopyListener {
-    public void onCopyProgress(int totalFilesToCopy, List<Path> filesCopied, List<Path> copyErrors);
+    public void onCopyProgress(CopyStatus copyStatus);
 }

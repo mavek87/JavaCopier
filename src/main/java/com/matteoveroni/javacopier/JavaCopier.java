@@ -1,9 +1,7 @@
 package com.matteoveroni.javacopier;
 
 import com.matteoveroni.javacopier.filevisitors.CopyDirsFileVisitor;
-import com.matteoveroni.javacopier.filevisitors.CountFileVisitor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.matteoveroni.javacopier.filevisitors.CountFilesVisitor;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +55,7 @@ public class JavaCopier {
     }
 
     private static Integer calculateFilesToCopy(Path src) throws IOException {
-        CountFileVisitor fileCounter = new CountFileVisitor();
+        CountFilesVisitor fileCounter = new CountFilesVisitor();
         Files.walkFileTree(src, fileCounter);
         return fileCounter.getFileCount();
     }

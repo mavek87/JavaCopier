@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 
+import com.matteoveroni.javacopier.pojo.CopyStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,11 +50,7 @@ public class Main implements CopyListener {
     }
 
     @Override
-    public void onCopyProgress(int totalFileToCopy, List<Path> filesCopied, List<Path> copyErrors) {
-//        LOG.debug("totalFileToCopy: " + totalFileToCopy);
-        int numberOfAnalyzedFiles = (filesCopied.size() + copyErrors.size());
-//        LOG.debug("numberOfAnalyzedFiles: " + numberOfAnalyzedFiles);
-        double copyPercentage = ((double) (numberOfAnalyzedFiles) / totalFileToCopy) * 100;
-        LOG.debug("copy percentage " + String.format("%.0f", copyPercentage) + "%");
+    public void onCopyProgress(CopyStatus copyStatus) {
+        LOG.debug("copy percentage " + copyStatus.getCopyPercentageInString());
     }
 }

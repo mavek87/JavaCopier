@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author Matteo Veroni
  */
-public class CountFileVisitor implements FileVisitor<Path> {
+public class CountFilesVisitor implements FileVisitor<Path> {
 
     private final AtomicInteger fileCounter = new AtomicInteger(0);
 

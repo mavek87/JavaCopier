@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.matteoveroni.javacopier.CopyListener;
+import com.matteoveroni.javacopier.pojo.CopyStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,14 +53,14 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
                 Path createdDirectory = Files.createDirectory(destDir);
                 if (copyListener.isPresent()) {
                     filesCopied.add(srcDir);
-                    copyListener.get().onCopyProgress(totalFilesToCopy, filesCopied, copyErrors);
+                    copyListener.get().onCopyProgress(new CopyStatus(totalFilesToCopy, filesCopied, copyErrors));
                 }
                 LOG.info("Dest dir " + createdDirectory + " created");
             } catch (IOException ex) {
                 LOG.warn("Unable to create directory: " + dest + ", ex: " + ex);
                 if (copyListener.isPresent()) {
                     copyErrors.add(srcDir);
-                    copyListener.get().onCopyProgress(totalFilesToCopy, filesCopied, copyErrors);
+                    copyListener.get().onCopyProgress(new CopyStatus(totalFilesToCopy, filesCopied, copyErrors));
                 }
                 return FileVisitResult.SKIP_SUBTREE;
             }
@@ -75,13 +76,13 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
             Path createdNewFile = Files.copy(srcFile, destFile, copyOptions);
             if (copyListener.isPresent()) {
                 filesCopied.add(srcFile);
-                copyListener.get().onCopyProgress(totalFilesToCopy, filesCopied, copyErrors);
+                copyListener.get().onCopyProgress(new CopyStatus(totalFilesToCopy, filesCopied, copyErrors));
             }
             LOG.info("Dest file " + createdNewFile + " created");
         } catch (IOException ex) {
             if (copyListener.isPresent()) {
                 copyErrors.add(srcFile);
-                copyListener.get().onCopyProgress(totalFilesToCopy, filesCopied, copyErrors);
+                copyListener.get().onCopyProgress(new CopyStatus(totalFilesToCopy, filesCopied, copyErrors));
             }
             LOG.warn("Unable to copy: " + srcFile + ", ex: " + ex.getMessage());
         }
@@ -93,7 +94,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         LOG.debug("xxx | visit srcFile: " + srcFile + " failed");
         if (copyListener.isPresent()) {
             copyErrors.add(srcFile);
-            copyListener.get().onCopyProgress(totalFilesToCopy, filesCopied, copyErrors);
+            copyListener.get().onCopyProgress(new CopyStatus(totalFilesToCopy, filesCopied, copyErrors));
         }
         if (ex instanceof FileSystemLoopException) {
             LOG.warn("Cycle detected: " + srcFile);

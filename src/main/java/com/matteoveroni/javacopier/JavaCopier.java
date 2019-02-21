@@ -7,12 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.List;
+import java.nio.file.*;
 import java.util.Optional;
 
 /**
@@ -26,19 +21,19 @@ public class JavaCopier {
     static final String ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE = "cannot copy a directory into a file";
     private final static Logger LOG = LoggerFactory.getLogger(JavaCopier.class);
 
-    public void copy(File src, File dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
-        this.copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), null, copyOptions);
+    public static final void copy(File src, File dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+        copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), null, copyOptions);
     }
 
-    public void copy(Path src, Path dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
-        this.copy(src, dest, null, copyOptions);
+    public static final void copy(Path src, Path dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+        copy(src, dest, null, copyOptions);
     }
 
-    public void copy(File src, File dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
-        this.copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), copyListener, copyOptions);
+    public static final void copy(File src, File dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+        copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), copyListener, copyOptions);
     }
 
-    public void copy(Path src, Path dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+    public static final void copy(Path src, Path dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
         if (src == null || dest == null) {
             throw new IllegalArgumentException(ERROR_MSG_SRC_OR_DEST_NULL);
         }
@@ -61,7 +56,7 @@ public class JavaCopier {
         }
     }
 
-    private Integer calculateFilesToCopy(Path src) throws IOException {
+    private static Integer calculateFilesToCopy(Path src) throws IOException {
         CountFileVisitor fileCounter = new CountFileVisitor();
         Files.walkFileTree(src, fileCounter);
         return fileCounter.getFileCount();

@@ -45,8 +45,7 @@ public class Main implements CopyListener {
                 throw new RuntimeException("Unknown OS");
         }
 
-        JavaCopier jc = new JavaCopier();
-        jc.copy(srcPath, destPath, this, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+        JavaCopier.copy(srcPath, destPath, this, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
 //        jc.copy(srcPath, destPath);
     }
 

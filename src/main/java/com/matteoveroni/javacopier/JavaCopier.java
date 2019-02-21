@@ -2,12 +2,16 @@ package com.matteoveroni.javacopier;
 
 import com.matteoveroni.javacopier.filevisitors.CopyDirsFileVisitor;
 import com.matteoveroni.javacopier.filevisitors.CountFilesVisitor;
+import com.matteoveroni.javacopier.pojo.CopyStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -48,14 +52,34 @@ public class JavaCopier {
         Integer totalFilesToCopy = calculateFilesCount(src);
         LOG.debug("number of files to copy: " + totalFilesToCopy);
 
+        CopyStatus finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, new ArrayList<>(), new ArrayList<>(), copyOptions);
         if (src.toFile().isFile() && (Files.notExists(dest) || dest.toFile().isFile())) {
-            Files.copy(src, dest, copyOptions);
+            try {
+                Files.copy(src, dest, copyOptions);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), copyOptions);
+            } catch (IOException ex) {
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED_WITH_ERRORS, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), copyOptions);
+            }
         } else if (src.toFile().isFile() && dest.toFile().isDirectory()) {
-            Files.copy(src, Paths.get(dest + File.separator + src.toFile().getName()), copyOptions);
+            try {
+                Files.copy(src, Paths.get(dest + File.separator + src.toFile().getName()), copyOptions);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), copyOptions);
+            } catch (IOException ex) {
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED_WITH_ERRORS, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), copyOptions);
+            }
         } else if (src.toFile().isDirectory() && (Files.notExists(dest) || dest.toFile().isDirectory())) {
-            Files.walkFileTree(src, new CopyDirsFileVisitor(src, dest, totalFilesToCopy, (copyListener == null) ? Optional.empty() : Optional.of(copyListener), copyOptions));
+            CopyDirsFileVisitor copyDirsFileVisitor = new CopyDirsFileVisitor(src, dest, totalFilesToCopy, (copyListener == null) ? Optional.empty() : Optional.of(copyListener), copyOptions);
+            try {
+                Files.walkFileTree(src, copyDirsFileVisitor);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED, totalFilesToCopy, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyOptions);
+            } catch (IOException ex) {
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED_WITH_ERRORS, totalFilesToCopy, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyOptions);
+            }
         } else {
             throw new IllegalArgumentException(ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
+        }
+        if (copyListener != null) {
+            copyListener.onCopyCompleted(finalCopyStatus);
         }
     }
 

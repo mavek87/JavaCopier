@@ -29,10 +29,10 @@ public class CopyStatus {
     private final int totalFileToCopy;
     private final List<Path> filesCopied;
     private final List<Path> copyErrors;
-    private final List<Path> copyHistory;
+    private final CopyHistory copyHistory;
     private final State copyState;
 
-    public CopyStatus(Path src, Path dest, State copyState, int totalFileToCopy, List<Path> filesCopied, List<Path> copyErrors, List<Path> copyHistory, CopyOption... copyOptions) {
+    public CopyStatus(Path src, Path dest, State copyState, int totalFileToCopy, List<Path> filesCopied, List<Path> copyErrors, CopyHistory copyHistory, CopyOption... copyOptions) {
         this.src = src;
         this.dest = dest;
         this.copyState = copyState;
@@ -90,7 +90,7 @@ public class CopyStatus {
         return copyErrors;
     }
 
-    public List<Path> getCopyHistory() {
+    public CopyHistory getCopyHistory() {
         return copyHistory;
     }
 

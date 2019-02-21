@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.matteoveroni.javacopier.CopyListener;
+import com.matteoveroni.javacopier.pojo.CopyHistory;
+import com.matteoveroni.javacopier.pojo.CopyHistoryEvent;
 import com.matteoveroni.javacopier.pojo.CopyStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +35,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     private final Optional<CopyListener> copyListener;
 
     private final int totalFilesToCopy;
-    private final List<Path> copyHistory = new ArrayList<>();
+    private final CopyHistory copyHistory = new CopyHistory();
     private final List<Path> filesCopied = new ArrayList<>();
     private final List<Path> copyErrors = new ArrayList<>();
 
@@ -48,23 +50,29 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult preVisitDirectory(Path srcDir, BasicFileAttributes attrs) {
         LOG.debug("+++ | pre visit srcDir: " + srcDir);
-        copyHistory.add(srcDir);
+//        copyHistory.add(srcDir);
         Path destDir = calculateDestPath(srcDir);
+        CopyHistoryEvent copyHistoryEvent = new CopyHistoryEvent(srcDir, destDir);
         if (Files.exists(destDir)) {
             LOG.info("destDir " + destDir + " already exists. No copy needed.");
             filesCopied.add(srcDir);
+            copyHistoryEvent.setSuccessful(true);
         } else {
             try {
                 Path createdDirectory = Files.createDirectory(destDir);
                 LOG.info("srcDir: " + srcDir + " visited, destDir: " + createdDirectory + " created");
                 filesCopied.add(srcDir);
+                copyHistoryEvent.setSuccessful(true);
             } catch (IOException ex) {
                 LOG.warn("Unable to create directory: " + dest + ", ex: " + ex.toString());
                 copyErrors.add(srcDir);
+                copyHistoryEvent.setSuccessful(false);
+                copyHistoryEvent.setException(ex);
                 return FileVisitResult.SKIP_SUBTREE;
             }
         }
         if (copyListener.isPresent()) {
+            copyHistory.addEvent(copyHistoryEvent);
             copyListener.get().onCopyProgress(new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, filesCopied, copyErrors, copyHistory, copyOptions));
         }
         return FileVisitResult.CONTINUE;
@@ -73,17 +81,23 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult visitFile(Path srcFile, BasicFileAttributes attrs) {
         LOG.debug("*** | visit srcFile: " + srcFile);
-        copyHistory.add(srcFile);
         Path destFile = calculateDestPath(srcFile);
+        CopyHistoryEvent copyHistoryEvent = new CopyHistoryEvent(srcFile, destFile);
         try {
             Path createdNewFile = Files.copy(srcFile, destFile, copyOptions);
             filesCopied.add(srcFile);
+            copyHistoryEvent.setSuccessful(true);
             LOG.info("srcFile " + srcFile + " visited and copied to destFile: " + destFile);
         } catch (IOException ex) {
             copyErrors.add(srcFile);
+            copyHistoryEvent.setSuccessful(false);
+            copyHistoryEvent.setException(ex);
             LOG.warn("Unable to copy: " + srcFile + ", ex: " + ex.toString());
         }
         if (copyListener.isPresent()) {
+            if (Files.exists(dest)) {
+            }
+            copyHistory.addEvent(copyHistoryEvent);
             copyListener.get().onCopyProgress(new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, filesCopied, copyErrors, copyHistory, copyOptions));
         }
         return FileVisitResult.CONTINUE;
@@ -92,11 +106,12 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult visitFileFailed(Path srcFile, IOException ex) {
         LOG.debug("xxx | visit srcFile: " + srcFile + " failed");
-        copyHistory.add(srcFile);
+        Path destPath = calculateDestPath(srcFile);
         if (!copyErrors.contains(srcFile)) {
             copyErrors.add(srcFile);
         }
         if (copyListener.isPresent()) {
+            copyHistory.addEvent(new CopyHistoryEvent(srcFile, destPath, false, ex));
             copyListener.get().onCopyProgress(new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, filesCopied, copyErrors, copyHistory, copyOptions));
         }
         if (ex instanceof FileSystemLoopException) {
@@ -124,7 +139,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         return copyErrors;
     }
 
-    public List<Path> getCopyHistory() {
+    public CopyHistory getCopyHistory() {
         return this.copyHistory;
     }
 

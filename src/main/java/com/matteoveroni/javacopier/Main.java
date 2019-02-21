@@ -53,7 +53,7 @@ public class Main implements CopyListener {
 
     @Override
     public void onCopyProgress(CopyStatus copyStatus) {
-        LOG.debug("file copied: " + copyStatus.getCopyHistory().size());
+        LOG.debug("file copied: " + copyStatus.getCopyHistory().getHistory().size());
         LOG.debug("copy percentage: " + copyStatus.getCopyPercentageInString());
     }
 

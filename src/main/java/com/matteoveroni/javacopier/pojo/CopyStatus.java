@@ -14,9 +14,9 @@ import java.util.List;
 public class CopyStatus {
 
     private transient final Gson gson = new GsonBuilder()
-//            .registerTypeAdapter(Path.class, new PathToGsonConverter())
-            .registerTypeHierarchyAdapter(Path.class, new PathToGsonConverter())
-            .create();
+        //            .registerTypeAdapter(Path.class, new PathToGsonConverter())
+        .registerTypeHierarchyAdapter(Path.class, new PathToGsonConverter())
+        .create();
 
     public enum State {
         COMPLETED, RUNNING, COMPLETED_WITH_ERRORS;
@@ -25,19 +25,21 @@ public class CopyStatus {
     private final Path src;
     private final Path dest;
     private final CopyOption[] copyOptions;
-    private final State copyState;
     private final double copyPercentage;
     private final int totalFileToCopy;
     private final List<Path> filesCopied;
     private final List<Path> copyErrors;
+    private final List<Path> copyHistory;
+    private final State copyState;
 
-    public CopyStatus(Path src, Path dest, State copyState, int totalFileToCopy, List<Path> filesCopied, List<Path> copyErrors, CopyOption... copyOptions) {
+    public CopyStatus(Path src, Path dest, State copyState, int totalFileToCopy, List<Path> filesCopied, List<Path> copyErrors, List<Path> copyHistory, CopyOption... copyOptions) {
         this.src = src;
         this.dest = dest;
         this.copyState = copyState;
         this.totalFileToCopy = totalFileToCopy;
         this.filesCopied = filesCopied;
         this.copyErrors = copyErrors;
+        this.copyHistory = copyHistory;
         this.copyOptions = copyOptions;
         switch (copyState) {
             case COMPLETED:
@@ -64,10 +66,6 @@ public class CopyStatus {
         return dest;
     }
 
-    public CopyOption[] getCopyOptions() {
-        return copyOptions;
-    }
-
     public State getCopyState() {
         return copyState;
     }
@@ -90,6 +88,14 @@ public class CopyStatus {
 
     public List<Path> getCopyErrors() {
         return copyErrors;
+    }
+
+    public List<Path> getCopyHistory() {
+        return copyHistory;
+    }
+
+    public CopyOption[] getCopyOptions() {
+        return copyOptions;
     }
 
     @Override

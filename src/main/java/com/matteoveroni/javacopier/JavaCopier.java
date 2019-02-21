@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -48,32 +47,32 @@ public class JavaCopier {
         }
         copyOptions = (copyOptions.length == 0) ? STANDARD_COPY_OPTIONS : copyOptions;
 
-        LOG.debug("calculating number of files to copy");
+        LOG.debug("calculating the number of files to copy...");
         Integer totalFilesToCopy = calculateFilesCount(src);
         LOG.debug("number of files to copy: " + totalFilesToCopy);
 
-        CopyStatus finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, new ArrayList<>(), new ArrayList<>(), copyOptions);
+        CopyStatus finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), copyOptions);
         if (src.toFile().isFile() && (Files.notExists(dest) || dest.toFile().isFile())) {
             try {
                 Files.copy(src, dest, copyOptions);
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), copyOptions);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), Arrays.asList(src), copyOptions);
             } catch (IOException ex) {
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED_WITH_ERRORS, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), copyOptions);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED_WITH_ERRORS, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), Arrays.asList(src), copyOptions);
             }
         } else if (src.toFile().isFile() && dest.toFile().isDirectory()) {
             try {
                 Files.copy(src, Paths.get(dest + File.separator + src.toFile().getName()), copyOptions);
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), copyOptions);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), Arrays.asList(src), copyOptions);
             } catch (IOException ex) {
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED_WITH_ERRORS, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), copyOptions);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED_WITH_ERRORS, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), Arrays.asList(src), copyOptions);
             }
         } else if (src.toFile().isDirectory() && (Files.notExists(dest) || dest.toFile().isDirectory())) {
             CopyDirsFileVisitor copyDirsFileVisitor = new CopyDirsFileVisitor(src, dest, totalFilesToCopy, (copyListener == null) ? Optional.empty() : Optional.of(copyListener), copyOptions);
             try {
                 Files.walkFileTree(src, copyDirsFileVisitor);
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED, totalFilesToCopy, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyOptions);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED, totalFilesToCopy, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyDirsFileVisitor.getCopyHistory(), copyOptions);
             } catch (IOException ex) {
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED_WITH_ERRORS, totalFilesToCopy, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyOptions);
+                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.State.COMPLETED_WITH_ERRORS, totalFilesToCopy, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyDirsFileVisitor.getCopyHistory(),  copyOptions);
             }
         } else {
             throw new IllegalArgumentException(ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);

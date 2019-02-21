@@ -33,6 +33,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     private final Optional<CopyListener> copyListener;
 
     private final int totalFilesToCopy;
+    private final List<Path> copyHistory = new ArrayList<>();
     private final List<Path> filesCopied = new ArrayList<>();
     private final List<Path> copyErrors = new ArrayList<>();
 
@@ -47,23 +48,24 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult preVisitDirectory(Path srcDir, BasicFileAttributes attrs) {
         LOG.debug("+++ | pre visit srcDir: " + srcDir);
+        copyHistory.add(srcDir);
         Path destDir = calculateDestPath(srcDir);
-        if (Files.notExists(destDir)) {
+        if (Files.exists(destDir)) {
+            LOG.info("destDir " + destDir + " already exists. No copy needed.");
+            filesCopied.add(srcDir);
+        } else {
             try {
                 Path createdDirectory = Files.createDirectory(destDir);
-                if (copyListener.isPresent()) {
-                    filesCopied.add(srcDir);
-                    copyListener.get().onCopyProgress(new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, filesCopied, copyErrors, copyOptions));
-                }
                 LOG.info("srcDir: " + srcDir + " visited, destDir: " + createdDirectory + " created");
+                filesCopied.add(srcDir);
             } catch (IOException ex) {
-                LOG.warn("Unable to create directory: " + dest + ", ex: " + ex);
-                if (copyListener.isPresent()) {
-                    copyErrors.add(srcDir);
-                    copyListener.get().onCopyProgress(new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, filesCopied, copyErrors, copyOptions));
-                }
+                LOG.warn("Unable to create directory: " + dest + ", ex: " + ex.toString());
+                copyErrors.add(srcDir);
                 return FileVisitResult.SKIP_SUBTREE;
             }
+        }
+        if (copyListener.isPresent()) {
+            copyListener.get().onCopyProgress(new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, filesCopied, copyErrors, copyHistory, copyOptions));
         }
         return FileVisitResult.CONTINUE;
     }
@@ -71,20 +73,18 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult visitFile(Path srcFile, BasicFileAttributes attrs) {
         LOG.debug("*** | visit srcFile: " + srcFile);
+        copyHistory.add(srcFile);
         Path destFile = calculateDestPath(srcFile);
         try {
             Path createdNewFile = Files.copy(srcFile, destFile, copyOptions);
-            if (copyListener.isPresent()) {
-                filesCopied.add(srcFile);
-                copyListener.get().onCopyProgress(new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, filesCopied, copyErrors, copyOptions));
-            }
+            filesCopied.add(srcFile);
             LOG.info("srcFile " + srcFile + " visited and copied to destFile: " + destFile);
         } catch (IOException ex) {
-            if (copyListener.isPresent()) {
-                copyErrors.add(srcFile);
-                copyListener.get().onCopyProgress(new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, filesCopied, copyErrors, copyOptions));
-            }
-            LOG.warn("Unable to copy: " + srcFile + ", ex: " + ex.getMessage());
+            copyErrors.add(srcFile);
+            LOG.warn("Unable to copy: " + srcFile + ", ex: " + ex.toString());
+        }
+        if (copyListener.isPresent()) {
+            copyListener.get().onCopyProgress(new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, filesCopied, copyErrors, copyHistory, copyOptions));
         }
         return FileVisitResult.CONTINUE;
     }
@@ -92,14 +92,17 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult visitFileFailed(Path srcFile, IOException ex) {
         LOG.debug("xxx | visit srcFile: " + srcFile + " failed");
-        if (copyListener.isPresent()) {
+        copyHistory.add(srcFile);
+        if (!copyErrors.contains(srcFile)) {
             copyErrors.add(srcFile);
-            copyListener.get().onCopyProgress(new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, filesCopied, copyErrors, copyOptions));
+        }
+        if (copyListener.isPresent()) {
+            copyListener.get().onCopyProgress(new CopyStatus(src, dest, CopyStatus.State.RUNNING, totalFilesToCopy, filesCopied, copyErrors, copyHistory, copyOptions));
         }
         if (ex instanceof FileSystemLoopException) {
             LOG.warn("Cycle detected: " + srcFile);
         } else {
-            LOG.warn("Unable to access: " + srcFile + ", ex: " + ex.getMessage());
+            LOG.warn("Unable to access: " + srcFile + ", ex: " + ex.toString());
         }
         return FileVisitResult.CONTINUE;
     }
@@ -121,6 +124,10 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         return copyErrors;
     }
 
+    public List<Path> getCopyHistory() {
+        return this.copyHistory;
+    }
+
     private void copyAllAttributesFromSrcToDestDirIfNeeded(Path srcDir) {
         Path destDir = calculateDestPath(srcDir);
         try {
@@ -128,7 +135,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
             Files.setLastModifiedTime(destDir, time);
             LOG.info("Dest dir " + destDir + " attributes copied from srcDir " + srcDir);
         } catch (IOException ex) {
-            LOG.warn("Unable to copy all attributes to: " + destDir + ", ex: " + ex.getMessage());
+            LOG.warn("Unable to copy all attributes to: " + destDir + ", ex: " + ex.toString());
         }
     }
 

@@ -20,9 +20,11 @@ public class Main implements CopyListener {
     private static final String SRC_WIN = "C:\\users\\veroni\\vertx";
     private static final String DEST_WIN = "C:\\users\\veroni\\dest2\\";
 
-    private enum OS {WINDOWS, LINUX}
+    private enum OS {
+        WINDOWS, LINUX
+    }
 
-    private static OS ENVIRONMENT = OS.WINDOWS;
+    private static final OS ENVIRONMENT = OS.LINUX;
 
     public static void main(String[] args) throws IOException {
         new Main().startTest();
@@ -51,10 +53,12 @@ public class Main implements CopyListener {
 
     @Override
     public void onCopyProgress(CopyStatus copyStatus) {
-        LOG.debug("copy percentage " + copyStatus.getCopyPercentageInString());
+        LOG.debug("file copied: " + copyStatus.getCopyHistory().size());
+        LOG.debug("copy percentage: " + copyStatus.getCopyPercentageInString());
     }
 
-    @Override public void onCopyCompleted(CopyStatus finalCopyStatus) {
+    @Override
+    public void onCopyCompleted(CopyStatus finalCopyStatus) {
         LOG.debug("copy completed " + finalCopyStatus);
     }
 }

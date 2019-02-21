@@ -32,6 +32,7 @@ public class CountFilesVisitor implements FileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFileFailed(Path file, IOException ex) throws IOException {
+        fileCounter.getAndIncrement();
         return FileVisitResult.CONTINUE;
     }
 

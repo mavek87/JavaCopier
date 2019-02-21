@@ -35,20 +35,12 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     private final List<Path> filesCopied = new ArrayList<>();
     private final List<Path> copyErrors = new ArrayList<>();
 
-    public CopyDirsFileVisitor(Path src, Path dest, int totalFilesToCopy, CopyListener copyListener, CopyOption[] copyOptions) {
+    public CopyDirsFileVisitor(Path src, Path dest, int totalFilesToCopy, Optional<CopyListener> copyListener, CopyOption[] copyOptions) {
         this.src = src;
         this.dest = dest;
         this.totalFilesToCopy = totalFilesToCopy;
         this.copyOptions = copyOptions;
-        if (copyListener == null) {
-            this.copyListener = Optional.empty();
-        } else {
-            this.copyListener = Optional.of(copyListener);
-        }
-    }
-
-    public CopyDirsFileVisitor(Path src, Path dest, int totalFilesToCopy, CopyOption[] copyOptions) {
-        this(src, dest, totalFilesToCopy, null, copyOptions);
+        this.copyListener = copyListener;
     }
 
     @Override

@@ -13,11 +13,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Matteo Veroni
  */
-public class JavaCopier implements CopyListener {
+public class JavaCopier {
 
     public static final CopyOption[] STANDARD_COPY_OPTIONS = new CopyOption[]{StandardCopyOption.COPY_ATTRIBUTES};
     static final String ERROR_MSG_SRC_OR_DEST_NULL = "src and dest cannot be null";
@@ -26,10 +27,18 @@ public class JavaCopier implements CopyListener {
     private final static Logger LOG = LoggerFactory.getLogger(JavaCopier.class);
 
     public void copy(File src, File dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
-        this.copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), copyOptions);
+        this.copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), null, copyOptions);
     }
 
     public void copy(Path src, Path dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+        this.copy(src, dest, null, copyOptions);
+    }
+
+    public void copy(File src, File dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+        this.copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), copyListener, copyOptions);
+    }
+
+    public void copy(Path src, Path dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
         if (src == null || dest == null) {
             throw new IllegalArgumentException(ERROR_MSG_SRC_OR_DEST_NULL);
         }
@@ -39,26 +48,17 @@ public class JavaCopier implements CopyListener {
         copyOptions = (copyOptions.length == 0) ? STANDARD_COPY_OPTIONS : copyOptions;
 
         Integer totalFilesToCopy = calculateFilesToCopy(src);
-        LOG.debug("totalFilesToCopy: " + totalFilesToCopy);
+//        LOG.debug("totalFilesToCopy: " + totalFilesToCopy);
 
         if (src.toFile().isFile() && (Files.notExists(dest) || dest.toFile().isFile())) {
             Files.copy(src, dest, copyOptions);
         } else if (src.toFile().isFile() && dest.toFile().isDirectory()) {
             Files.copy(src, Paths.get(dest + File.separator + src.toFile().getName()), copyOptions);
         } else if (src.toFile().isDirectory() && (Files.notExists(dest) || dest.toFile().isDirectory())) {
-            Files.walkFileTree(src, new CopyDirsFileVisitor(src, dest, totalFilesToCopy, this, copyOptions));
+            Files.walkFileTree(src, new CopyDirsFileVisitor(src, dest, totalFilesToCopy, (copyListener == null) ? Optional.empty() : Optional.of(copyListener), copyOptions));
         } else {
             throw new IllegalArgumentException(ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
         }
-    }
-
-    @Override
-    public void onCopyProgress(int totalFileToCopy, List<Path> filesCopied, List<Path> copyErrors) {
-//        LOG.debug("totalFileToCopy: " + totalFileToCopy);
-        int numberOfAnalyzedFiles = (filesCopied.size() + copyErrors.size());
-//        LOG.debug("numberOfAnalyzedFiles: " + numberOfAnalyzedFiles);
-        double copyPercentage = ((double) (numberOfAnalyzedFiles) / totalFileToCopy) * 100;
-        LOG.debug("copy percentage " + String.format("%.0f", copyPercentage) + "%");
     }
 
     private Integer calculateFilesToCopy(Path src) throws IOException {

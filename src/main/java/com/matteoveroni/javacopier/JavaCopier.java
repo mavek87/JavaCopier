@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 /**
- *
  * @author Matteo Veroni
  */
 public class JavaCopier {
@@ -21,15 +20,15 @@ public class JavaCopier {
     }
 
     public void copy(Path src, Path dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
-        if (Files.notExists(src) || Files.notExists(dest)) {
-            throw new IllegalArgumentException("src and dest must exist");
+        if (Files.notExists(src)) {
+            throw new IllegalArgumentException("src must exist");
         }
         copyOptions = (copyOptions.length == 0) ? STANDARD_COPY_OPTIONS : copyOptions;
-        if (src.toFile().isFile() && dest.toFile().isFile()) {
+        if (src.toFile().isFile() && (Files.notExists(dest) || dest.toFile().isFile())) {
             Files.copy(src, dest, copyOptions);
         } else if (src.toFile().isFile() && dest.toFile().isDirectory()) {
             Files.copy(src, Paths.get(dest + File.separator + src.toFile().getName()), copyOptions);
-        } else if (src.toFile().isDirectory() && dest.toFile().isDirectory()) {
+        } else if (src.toFile().isDirectory() && (Files.notExists(dest) || dest.toFile().isDirectory())) {
             Files.walkFileTree(src, new CopyDirsFileVisitor(src, dest, copyOptions));
         } else {
             throw new IllegalArgumentException("cannot copy a directory into a file");

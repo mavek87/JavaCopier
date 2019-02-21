@@ -16,7 +16,6 @@ import java.util.Arrays;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 /**
  * @Author: Matteo Veroni
@@ -139,6 +138,4 @@ public class JavaCopierTest {
         byte[] encoded = Files.readAllBytes(file);
         return new String(encoded, Charset.defaultCharset());
     }
-
-
 }

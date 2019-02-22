@@ -48,7 +48,7 @@ public class Main implements CopyListener {
         }
 
 //        JavaCopier.copy(srcPath, destPath, this, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
-        JavaCopier.copy(srcPath, destPath, this);
+        CopyStatus copy = JavaCopier.copy(srcPath, destPath, this);
     }
 
     @Override

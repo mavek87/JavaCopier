@@ -18,7 +18,9 @@ import com.matteoveroni.javacopier.CopyListener;
 import com.matteoveroni.javacopier.pojo.CopyHistory;
 import com.matteoveroni.javacopier.pojo.CopyHistoryEvent;
 import com.matteoveroni.javacopier.pojo.CopyStatus;
+
 import java.nio.file.FileAlreadyExistsException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,57 +51,53 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult preVisitDirectory(Path srcDir, BasicFileAttributes attrs) {
         LOG.debug("+++ | pre visit srcDir: " + srcDir);
-        Path destDir = calculateDestPath(srcDir);
-        CopyHistoryEvent copyHistoryEvent = new CopyHistoryEvent(srcDir, destDir);
+        final Path destDir = calculateDestPath(srcDir);
         try {
             Files.createDirectory(destDir);
             LOG.info("srcDir: " + srcDir + " visited, destDir: " + destDir + " created");
-            registerCopySuccessEventInHistory(srcDir, copyHistoryEvent);
+            registerCopySuccessEventInHistory(srcDir, destDir);
         } catch (FileAlreadyExistsException ex1) {
             LOG.warn("srcDir: " + srcDir + " visited, destDir " + destDir + " already exists. No creation needed.");
-            registerCopySuccessEventInHistory(srcDir, copyHistoryEvent);
+            registerCopySuccessEventInHistory(srcDir, destDir);
         } catch (IOException ex2) {
             LOG.error("Unable to create directory: " + destDir + ", ex: " + ex2.toString());
-            registerCopyFailEventInHistory(srcDir, copyHistoryEvent, ex2);
+            registerCopyFailEventInHistory(srcDir, destDir, ex2);
             return FileVisitResult.SKIP_SUBTREE;
         }
-        sendCopyEventToListener(copyHistoryEvent);
+        sendCopyStatusProgressEventToListener();
         return FileVisitResult.CONTINUE;
     }
 
     @Override
     public FileVisitResult visitFile(Path srcFile, BasicFileAttributes attrs) {
         LOG.debug("*** | visit srcFile: " + srcFile);
-        Path destFile = calculateDestPath(srcFile);
-        CopyHistoryEvent copyHistoryEvent = new CopyHistoryEvent(srcFile, destFile);
+        final Path destFile = calculateDestPath(srcFile);
         try {
             Files.copy(srcFile, destFile, copyOptions);
             LOG.info("srcFile " + srcFile + " visited and copied to destFile: " + destFile);
-            registerCopySuccessEventInHistory(srcFile, copyHistoryEvent);
+            registerCopySuccessEventInHistory(srcFile, destFile);
         } catch (FileAlreadyExistsException ex) {
             LOG.warn("srcFile " + srcFile + " visited but not copied, destFile: " + destFile + " exists already");
-            registerCopySuccessEventInHistory(srcFile, copyHistoryEvent);
+            registerCopySuccessEventInHistory(srcFile, destFile);
         } catch (IOException ioe) {
             LOG.error("Unable to copy: " + srcFile + ", ex: " + ioe.toString());
-            registerCopyFailEventInHistory(srcFile, copyHistoryEvent, ioe);
+            registerCopyFailEventInHistory(srcFile, destFile, ioe);
         }
-        sendCopyEventToListener(copyHistoryEvent);
+        sendCopyStatusProgressEventToListener();
         return FileVisitResult.CONTINUE;
     }
 
     @Override
-    public FileVisitResult visitFileFailed(Path srcFile, IOException ex) {
-        LOG.debug("xxx | visit srcFile: " + srcFile + " failed");
-        Path destPath = calculateDestPath(srcFile);
-        if (!copyErrors.contains(srcFile)) {
-            copyErrors.add(srcFile);
-        }
-        sendCopyEventToListener(new CopyHistoryEvent(srcFile, destPath, false, ex));
+    public FileVisitResult visitFileFailed(Path srcPath, IOException ex) {
+        LOG.debug("xxx | visit srcFile: " + srcPath + " failed");
+        final Path destPath = calculateDestPath(srcPath);
         if (ex instanceof FileSystemLoopException) {
-            LOG.warn("Cycle detected: " + srcFile);
+            LOG.warn("Cycle detected: " + srcPath);
         } else {
-            LOG.warn("Unable to access: " + srcFile + ", ex: " + ex.toString());
+            LOG.warn("Unable to access: " + srcPath + ", ex: " + ex.toString());
         }
+        registerCopyFailEventInHistory(srcPath, destPath, ex);
+        sendCopyStatusProgressEventToListener();
         return FileVisitResult.CONTINUE;
     }
 
@@ -124,22 +122,23 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         return this.copyHistory;
     }
 
-    private void sendCopyEventToListener(CopyHistoryEvent copyHistoryEvent) {
-        if (copyListener.isPresent()) {
-            copyHistory.addEvent(copyHistoryEvent);
-            copyListener.get().onCopyProgress(new CopyStatus(rootSrc, rootDest, CopyStatus.CopyState.RUNNING, totalFiles, filesCopied, copyErrors, copyHistory, copyOptions));
-        }
+    private void sendCopyStatusProgressEventToListener() {
+        CopyStatus runningCopyStatus = new CopyStatus(rootSrc, rootDest, CopyStatus.CopyState.RUNNING, totalFiles, filesCopied, copyErrors, copyHistory, copyOptions);
+        copyListener.ifPresent(listener -> listener.onCopyProgress(runningCopyStatus));
     }
 
-    private void registerCopySuccessEventInHistory(Path srcDir, CopyHistoryEvent copyHistoryEvent) {
-        filesCopied.add(srcDir);
+    private void registerCopySuccessEventInHistory(Path srcPath, Path destPath) {
+        CopyHistoryEvent copyHistoryEvent = new CopyHistoryEvent(srcPath, destPath);
         copyHistoryEvent.setSuccesfull(true);
+        copyHistory.addEvent(copyHistoryEvent);
+        filesCopied.add(srcPath);
     }
 
-    private void registerCopyFailEventInHistory(Path srcFile, CopyHistoryEvent copyHistoryEvent, IOException ex2) {
-        copyErrors.add(srcFile);
+    private void registerCopyFailEventInHistory(Path srcPath, Path destPath, IOException ex2) {
+        CopyHistoryEvent copyHistoryEvent = new CopyHistoryEvent(srcPath, destPath);
         copyHistoryEvent.setSuccesfull(false);
         copyHistoryEvent.setException(ex2);
+        copyErrors.add(srcPath);
     }
 
     private void copyAllAttributesFromSrcToDestDirIfNeeded(Path srcDir) {

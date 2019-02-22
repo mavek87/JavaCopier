@@ -51,7 +51,7 @@ public class JavaCopier {
         try {
             totalFiles = calculateFilesCount(src);
         } catch (IOException ex) {
-            return buildCopyFailStatus(src, dest, totalFiles, ex, copyOptions);
+            return buildCopyFailStatusReport(src, dest, totalFiles, ex, copyOptions);
         }
         LOG.debug("number of files to copy: " + totalFiles);
 
@@ -60,25 +60,25 @@ public class JavaCopier {
             if (src.toFile().isFile() && (Files.notExists(dest) || dest.toFile().isFile())) {
                 try {
                     Files.copy(src, dest, copyOptions);
-                    copyStatus = buildCopySuccessStatus(src, dest, totalFiles, copyOptions);
+                    copyStatus = buildCopySuccessStatusReport(src, dest, totalFiles, copyOptions);
                 } catch (IOException ex) {
-                    copyStatus = buildCopyFailStatus(src, dest, totalFiles, ex, copyOptions);
+                    copyStatus = buildCopyFailStatusReport(src, dest, totalFiles, ex, copyOptions);
                 }
             } else if (src.toFile().isFile() && dest.toFile().isDirectory()) {
                 try {
                     Files.copy(src, Paths.get(dest + File.separator + src.toFile().getName()), copyOptions);
-                    copyStatus = buildCopySuccessStatus(src, dest, totalFiles, copyOptions);
+                    copyStatus = buildCopySuccessStatusReport(src, dest, totalFiles, copyOptions);
                 } catch (IOException ex) {
-                    copyStatus = buildCopyFailStatus(src, dest, totalFiles, ex, copyOptions);
+                    copyStatus = buildCopyFailStatusReport(src, dest, totalFiles, ex, copyOptions);
                 }
             } else if (src.toFile().isDirectory() && (Files.notExists(dest) || dest.toFile().isDirectory())) {
                 try {
                     CopyDirsFileVisitor copyDirsFileVisitor = new CopyDirsFileVisitor(src, dest, totalFiles, (copyListener == null) ? Optional.empty() : Optional.of(copyListener), copyOptions);
                     Files.walkFileTree(src, copyDirsFileVisitor);
-                    copyStatus = buildCopySuccessStatus(src, dest, totalFiles, copyOptions);
+                    copyStatus = buildCopySuccessStatusReport(src, dest, totalFiles, copyOptions);
                 } catch (IOException ex) {
                     LOG.debug("Severe error it should not happen --->> " + ex.toString());
-                    copyStatus = buildCopyFailStatus(src, dest, totalFiles, ex, copyOptions);
+                    copyStatus = buildCopyFailStatusReport(src, dest, totalFiles, ex, copyOptions);
                 }
             } else {
                 throw new IllegalArgumentException(ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
@@ -96,13 +96,13 @@ public class JavaCopier {
         }
     }
 
-    private static CopyStatusReport buildCopySuccessStatus(Path src, Path dest, Integer totalFiles, CopyOption[] copyOptions) {
+    private static CopyStatusReport buildCopySuccessStatusReport(Path src, Path dest, Integer totalFiles, CopyOption[] copyOptions) {
         CopyHistory copyHistory = new CopyHistory();
         copyHistory.addHistoryEvent(new CopyHistoryEvent(src, dest, true, null));
         return new CopyStatusReport(src, dest, CopyStatusReport.CopyState.DONE, totalFiles, copyHistory, copyOptions);
     }
 
-    private static CopyStatusReport buildCopyFailStatus(Path src, Path dest, Integer totalFiles, IOException ex, CopyOption[] copyOptions) {
+    private static CopyStatusReport buildCopyFailStatusReport(Path src, Path dest, Integer totalFiles, IOException ex, CopyOption[] copyOptions) {
         CopyHistory copyHistory = new CopyHistory();
         copyHistory.addHistoryEvent(new CopyHistoryEvent(src, dest, false, ex));
         return new CopyStatusReport(src, dest, CopyStatusReport.CopyState.DONE, totalFiles, copyHistory, copyOptions);

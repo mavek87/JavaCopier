@@ -28,51 +28,46 @@ public class JavaCopier {
     static final String ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE = "cannot copy a directory into a file";
 //    private final static Logger LOG = LoggerFactory.getLogger(JavaCopier.class);
 
-    public static void copy(File src, File dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
-        copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), null, copyOptions);
+    public static CopyStatus copy(File src, File dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+        return copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), null, copyOptions);
     }
 
-    public static void copy(Path src, Path dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
-        copy(src, dest, null, copyOptions);
+    public static CopyStatus copy(Path src, Path dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
+        return copy(src, dest, null, copyOptions);
     }
 
-    public static void copy(File src, File dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException {
-        copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), copyListener, copyOptions);
+    public static CopyStatus copy(File src, File dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException {
+        return copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), copyListener, copyOptions);
     }
 
-    public static void copy(Path src, Path dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException {
+    public static CopyStatus copy(Path src, Path dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException {
         if (src == null || dest == null) {
             throw new IllegalArgumentException(ERROR_MSG_SRC_OR_DEST_NULL);
         }
         if (Files.notExists(src)) {
             throw new IllegalArgumentException(ERROR_MSG_SRC_MUST_EXIST);
         }
-        copyOptions = (copyOptions.length == 0) ? STANDARD_COPY_OPTIONS : copyOptions;
 
-        CopyHistory copyHistory = new CopyHistory();
+        copyOptions = (copyOptions == null || copyOptions.length == 0) ? STANDARD_COPY_OPTIONS : copyOptions;
 
         LOG.debug("calculating the number of files to copy...");
         Integer totalFilesToCopy = calculateFilesCount(src);
         LOG.debug("number of files to copy: " + totalFilesToCopy);
 
-        CopyStatus finalCopyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.RUNNING, totalFilesToCopy, new ArrayList<>(), new ArrayList<>(), copyHistory, copyOptions);
+        CopyStatus copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.RUNNING, totalFilesToCopy, new ArrayList<>(), new ArrayList<>(), new CopyHistory(), copyOptions);
         if (src.toFile().isFile() && (Files.notExists(dest) || dest.toFile().isFile())) {
             try {
                 Files.copy(src, dest, copyOptions);
-                copyHistory.addEvent(new CopyHistoryEvent(src, dest, true, null));
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), copyHistory, copyOptions);
+                copyStatus = getSingleCopySuccessStatus(src, dest, totalFilesToCopy, copyOptions);
             } catch (IOException ex) {
-                copyHistory.addEvent(new CopyHistoryEvent(src, dest, false, ex));
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), copyHistory, copyOptions);
+                copyStatus = getSingleCopyFailStatus(src, dest, totalFilesToCopy, ex, copyOptions);
             }
         } else if (src.toFile().isFile() && dest.toFile().isDirectory()) {
             try {
                 Files.copy(src, Paths.get(dest + File.separator + src.toFile().getName()), copyOptions);
-                copyHistory.addEvent(new CopyHistoryEvent(src, dest, true, null));
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), copyHistory, copyOptions);
+                copyStatus = getSingleCopySuccessStatus(src, dest, totalFilesToCopy, copyOptions);
             } catch (IOException ex) {
-                copyHistory.addEvent(new CopyHistoryEvent(src, dest, false, ex));
-                finalCopyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), copyHistory, copyOptions);
+                copyStatus = getSingleCopyFailStatus(src, dest, totalFilesToCopy, ex, copyOptions);
             }
         } else if (src.toFile().isDirectory() && (Files.notExists(dest) || dest.toFile().isDirectory())) {
             CopyDirsFileVisitor copyDirsFileVisitor = new CopyDirsFileVisitor(src, dest, totalFilesToCopy, (copyListener == null) ? Optional.empty() : Optional.of(copyListener), copyOptions);
@@ -81,13 +76,30 @@ public class JavaCopier {
             } catch (IOException ex) {
                 LOG.debug(ex.toString());
             }
-            finalCopyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyDirsFileVisitor.getCopyHistory(), copyOptions);
+            copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyDirsFileVisitor.getCopyHistory(), copyOptions);
         } else {
             throw new IllegalArgumentException(ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
         }
         if (copyListener != null) {
-            copyListener.onCopyCompleted(finalCopyStatus);
+            copyListener.onCopyCompleted(copyStatus);
         }
+        return copyStatus;
+    }
+
+    private static CopyStatus getSingleCopySuccessStatus(Path src, Path dest, Integer totalFilesToCopy, CopyOption[] copyOptions) {
+        CopyStatus copyStatus;
+        CopyHistory copyHistory = new CopyHistory();
+        copyHistory.addEvent(new CopyHistoryEvent(src, dest, true, null));
+        copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), copyHistory, copyOptions);
+        return copyStatus;
+    }
+
+    private static CopyStatus getSingleCopyFailStatus(Path src, Path dest, Integer totalFilesToCopy, IOException ex, CopyOption[] copyOptions) {
+        CopyStatus copyStatus;
+        CopyHistory copyHistory = new CopyHistory();
+        copyHistory.addEvent(new CopyHistoryEvent(src, dest, false, ex));
+        copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), copyHistory, copyOptions);
+        return copyStatus;
     }
 
     // TODO: ugly. Change this code

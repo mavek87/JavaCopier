@@ -1,7 +1,7 @@
-package com.matteoveroni.javacopier;
+package com.matteoveroni.javacopier.logic;
 
-import com.matteoveroni.javacopier.filevisitors.CopyDirsFileVisitor;
-import com.matteoveroni.javacopier.filevisitors.CountFilesVisitor;
+import com.matteoveroni.javacopier.logic.filevisitors.CopyDirsFileVisitor;
+import com.matteoveroni.javacopier.logic.filevisitors.CountFilesVisitor;
 import com.matteoveroni.javacopier.pojo.CopyHistory;
 import com.matteoveroni.javacopier.pojo.CopyHistoryEvent;
 import com.matteoveroni.javacopier.pojo.CopyStatus;

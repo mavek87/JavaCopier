@@ -1,5 +1,6 @@
-package com.matteoveroni.javacopier;
+package com.matteoveroni.javacopier.logic;
 
+import com.matteoveroni.javacopier.logic.JavaCopier;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;

@@ -1,4 +1,4 @@
-package com.matteoveroni.javacopier;
+package com.matteoveroni.javacopier.logic;
 
 import com.matteoveroni.javacopier.pojo.CopyStatus;
 

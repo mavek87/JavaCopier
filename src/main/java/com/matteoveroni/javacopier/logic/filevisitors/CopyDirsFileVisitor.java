@@ -1,4 +1,4 @@
-package com.matteoveroni.javacopier.filevisitors;
+package com.matteoveroni.javacopier.logic.filevisitors;
 
 import java.io.IOException;
 import java.nio.file.CopyOption;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.matteoveroni.javacopier.CopyListener;
+import com.matteoveroni.javacopier.logic.CopyListener;
 import com.matteoveroni.javacopier.pojo.CopyHistory;
 import com.matteoveroni.javacopier.pojo.CopyHistoryEvent;
 import com.matteoveroni.javacopier.pojo.CopyStatus;

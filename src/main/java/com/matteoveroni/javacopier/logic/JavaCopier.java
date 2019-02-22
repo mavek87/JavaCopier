@@ -80,10 +80,14 @@ public class JavaCopier {
         } else {
             throw new IllegalArgumentException(ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
         }
+        notifyCopyStateToListener(copyListener, copyStatus);
+        return copyStatus;
+    }
+
+    private static void notifyCopyStateToListener(CopyListener copyListener, CopyStatus copyStatus) {
         if (copyListener != null) {
             copyListener.onCopyCompleted(copyStatus);
         }
-        return copyStatus;
     }
 
     private static CopyStatus getSingleCopySuccessStatus(Path src, Path dest, Integer totalFilesToCopy, CopyOption[] copyOptions) {

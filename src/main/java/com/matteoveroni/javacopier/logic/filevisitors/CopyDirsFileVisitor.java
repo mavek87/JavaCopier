@@ -51,7 +51,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult preVisitDirectory(Path srcDir, BasicFileAttributes attrs) {
         LOG.debug("+++ | pre visit srcDir: " + srcDir);
-        final Path destDir = calculateDestPath(srcDir);
+        Path destDir = calculateDestPath(srcDir);
         try {
             Files.createDirectory(destDir);
             LOG.info("srcDir: " + srcDir + " visited, destDir: " + destDir + " created");
@@ -64,14 +64,14 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
             registerCopyFailEventInHistory(srcDir, destDir, ex2);
             return FileVisitResult.SKIP_SUBTREE;
         }
-        sendCopyStatusProgressEventToListener();
+        notifyCopyStatusProgressEventToListener();
         return FileVisitResult.CONTINUE;
     }
 
     @Override
     public FileVisitResult visitFile(Path srcFile, BasicFileAttributes attrs) {
         LOG.debug("*** | visit srcFile: " + srcFile);
-        final Path destFile = calculateDestPath(srcFile);
+        Path destFile = calculateDestPath(srcFile);
         try {
             Files.copy(srcFile, destFile, copyOptions);
             LOG.info("srcFile " + srcFile + " visited and copied to destFile: " + destFile);
@@ -83,21 +83,21 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
             LOG.error("Unable to copy: " + srcFile + ", ex: " + ioe.toString());
             registerCopyFailEventInHistory(srcFile, destFile, ioe);
         }
-        sendCopyStatusProgressEventToListener();
+        notifyCopyStatusProgressEventToListener();
         return FileVisitResult.CONTINUE;
     }
 
     @Override
     public FileVisitResult visitFileFailed(Path srcPath, IOException ex) {
         LOG.debug("xxx | visit srcFile: " + srcPath + " failed");
-        final Path destPath = calculateDestPath(srcPath);
+        Path destPath = calculateDestPath(srcPath);
         if (ex instanceof FileSystemLoopException) {
             LOG.warn("Cycle detected: " + srcPath);
         } else {
             LOG.warn("Unable to access: " + srcPath + ", ex: " + ex.toString());
         }
         registerCopyFailEventInHistory(srcPath, destPath, ex);
-        sendCopyStatusProgressEventToListener();
+        notifyCopyStatusProgressEventToListener();
         return FileVisitResult.CONTINUE;
     }
 
@@ -122,7 +122,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         return this.copyHistory;
     }
 
-    private void sendCopyStatusProgressEventToListener() {
+    private void notifyCopyStatusProgressEventToListener() {
         CopyStatus runningCopyStatus = new CopyStatus(rootSrc, rootDest, CopyStatus.CopyState.RUNNING, totalFiles, filesCopied, copyErrors, copyHistory, copyOptions);
         copyListener.ifPresent(listener -> listener.onCopyProgress(runningCopyStatus));
     }

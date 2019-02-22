@@ -2,17 +2,16 @@ package com.matteoveroni.javacopier;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.matteoveroni.javacopier.CopyHistory;
+import com.matteoveroni.javacopier.copyhistory.CopyHistory;
 import com.matteoveroni.javacopier.gsonconverters.PathToGsonConverter;
 
 import java.nio.file.CopyOption;
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * @author Matteo Veroni
  */
-public class CopyStatus {
+public class CopyStatusReport {
 
     private transient final Gson gson = new GsonBuilder()
         //            .registerTypeAdapter(Path.class, new PathToGsonConverter())
@@ -20,45 +19,55 @@ public class CopyStatus {
         .create();
 
     public enum CopyState {
-        RUNNING, DONE;
+        READY, RUNNING, DONE;
     }
 
-    public enum CopyResult {
-        SUCCESFULL, FAILED, PARTIAL
+    public enum FinalResult {
+        NOT_ELABORATED, COPY_SUCCESFULL, COPY_FAILED, COPY_PARTIAL
     }
 
     private final Path src;
     private final Path dest;
     private final int totalFiles;
-    private final List<Path> filesCopied;
-    private final List<Path> copyErrors;
+    private final CopyState copyState;
+    private final double copyPercentage;
     private final CopyHistory copyHistory;
-    private double copyPercentage = 0.0;
-    private CopyResult copyResult = null;
-    private CopyState copyState = null;
+    private final FinalResult result;
     private final CopyOption[] copyOptions;
 
-    public CopyStatus(Path src, Path dest, CopyState copyState, int totalFiles, List<Path> filesCopied, List<Path> copyErrors, CopyHistory copyHistory, CopyOption... copyOptions) {
+    public CopyStatusReport(Path src, Path dest, CopyState copyState, int totalFiles, CopyHistory copyHistory, CopyOption... copyOptions) {
         this.src = src;
         this.dest = dest;
         this.copyState = copyState;
         this.totalFiles = totalFiles;
-        this.filesCopied = filesCopied;
-        this.copyErrors = copyErrors;
         this.copyHistory = copyHistory;
         this.copyOptions = copyOptions;
         switch (copyState) {
+
+            case READY:
+                copyPercentage = 0.0;
+                result = FinalResult.NOT_ELABORATED;
+                break;
+
             case DONE:
-                this.copyPercentage = 100;
-                if(copyHistory.getCopyErrors() != null && copyHistory.getCopyErrors().isEmpty()) {
-                    copyResult = CopyResult.SUCCESFULL;
+                copyPercentage = 100.0;
+                if (copyHistory == null || copyHistory.getCopyErrors() == null) {
+                    result = FinalResult.COPY_FAILED;
+                    break;
+                }
+                if (copyHistory.getCopyErrors().size() >= totalFiles) {
+                    result = FinalResult.COPY_FAILED;
+                } else if (copyHistory.getCopyErrors().isEmpty()) {
+                    result = FinalResult.COPY_SUCCESFULL;
                 } else {
-                    copyResult = CopyResult.FAILED;
+                    result = FinalResult.COPY_PARTIAL;
                 }
                 break;
+
             case RUNNING:
             default:
-                this.copyPercentage = calculateCopyPercentage();
+                copyPercentage = calculateCopyPercentage();
+                result = FinalResult.NOT_ELABORATED;
                 break;
         }
     }
@@ -83,14 +92,6 @@ public class CopyStatus {
         return totalFiles;
     }
 
-    public List<Path> getFilesCopied() {
-        return filesCopied;
-    }
-
-    public List<Path> getCopyErrors() {
-        return copyErrors;
-    }
-
     public CopyHistory getCopyHistory() {
         return copyHistory;
     }
@@ -99,8 +100,8 @@ public class CopyStatus {
         return copyState;
     }
 
-    public CopyResult getCopyResult() {
-        return copyResult;
+    public FinalResult getFinalResult() {
+        return result;
     }
 
     public CopyOption[] getCopyOptions() {
@@ -113,7 +114,10 @@ public class CopyStatus {
     }
 
     private double calculateCopyPercentage() {
-        int numberOfAnalyzedFiles = copyHistory.getHistory().size();
-        return ((double) (numberOfAnalyzedFiles) / totalFiles) * 100;
+        if (copyHistory == null) {
+            return 0.0;
+        } else {
+            return ((double) (copyHistory.getAnalyzedFiles()) / totalFiles) * 100;
+        }
     }
 }

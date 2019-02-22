@@ -7,7 +7,7 @@ import java.nio.file.Path;
  */
 public class CopyHistoryEvent {
 
-    private static Long NEXT_ID_GLOBAL = 1L;
+    private static Long CURRENT_ID = 1L;
 
     private Long id;
     private Path src;
@@ -18,8 +18,8 @@ public class CopyHistoryEvent {
     public CopyHistoryEvent(Path src, Path dest) {
         this.src = src;
         this.dest = dest;
-        id = NEXT_ID_GLOBAL;
-        NEXT_ID_GLOBAL++;
+        id = CURRENT_ID;
+        CURRENT_ID++;
     }
 
     public CopyHistoryEvent(Path src, Path dest, boolean successful, Exception ex) {

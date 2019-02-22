@@ -1,6 +1,5 @@
-package com.matteoveroni.javacopier;
+package com.matteoveroni.javacopier.copyhistory;
 
-import com.matteoveroni.javacopier.copyhistory.CopyHistoryEvent;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +11,8 @@ public class CopyHistory {
 
     private final List<CopyHistoryEvent> history = new ArrayList<>();
     private final List<Path> filesCopied = new ArrayList<>();
-    private final List<Path> filesSkipped = new ArrayList<>();
     private final List<Path> copyErrors = new ArrayList<>();
+    private int analyzedFiles = 0;
 
     public void addHistoryEvent(CopyHistoryEvent event) {
         history.add(event);
@@ -23,6 +22,7 @@ public class CopyHistory {
         } else {
             copyErrors.add(src);
         }
+        analyzedFiles++;
     }
 
     public List<CopyHistoryEvent> getHistory() {
@@ -35,6 +35,10 @@ public class CopyHistory {
 
     public List<Path> getCopyErrors() {
         return copyErrors;
+    }
+
+    public int getAnalyzedFiles() {
+        return analyzedFiles;
     }
     
 }

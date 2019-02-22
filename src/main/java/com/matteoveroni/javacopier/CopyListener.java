@@ -4,7 +4,7 @@ package com.matteoveroni.javacopier;
  * @author Matteo Veroni
  */
 public interface CopyListener {
-    void onCopyProgress(CopyStatus copyStatus);
+    void onCopyProgress(CopyStatusReport copyStatus);
 
-    void onCopyCompleted(CopyStatus finalCopyStatus);
+    void onCopyCompleted(CopyStatusReport finalCopyStatus);
 }

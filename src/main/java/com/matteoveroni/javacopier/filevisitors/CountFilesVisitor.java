@@ -14,7 +14,7 @@ public class CountFilesVisitor implements FileVisitor<Path> {
 
     private final AtomicInteger fileCounter = new AtomicInteger(0);
 
-    public Integer getFileCount() {
+    public Integer getFilesCount() {
         return fileCounter.get();
     }
 

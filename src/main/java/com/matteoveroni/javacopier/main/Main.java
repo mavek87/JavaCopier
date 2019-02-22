@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import com.matteoveroni.javacopier.CopyStatus;
+import com.matteoveroni.javacopier.CopyStatusReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,17 +50,17 @@ public class Main implements CopyListener {
         }
 
 //        JavaCopier.copy(srcPath, destPath, this, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
-        CopyStatus copy = JavaCopier.copy(srcPath, destPath, this);
+        CopyStatusReport copy = JavaCopier.copy(srcPath, destPath, this);
     }
 
     @Override
-    public void onCopyProgress(CopyStatus copyStatus) {
+    public void onCopyProgress(CopyStatusReport copyStatus) {
         LOG.debug("file analyzed: " + copyStatus.getCopyHistory().getHistory().size());
         LOG.debug("copy percentage: " + copyStatus.getCopyPercentageInString());
     }
 
     @Override
-    public void onCopyCompleted(CopyStatus finalCopyStatus) {
+    public void onCopyCompleted(CopyStatusReport finalCopyStatus) {
         LOG.debug("copy completed " + finalCopyStatus);
     }
 }

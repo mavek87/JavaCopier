@@ -1,13 +1,13 @@
-package com.matteoveroni.javacopier;
+package com.matteoveroni.javacopier.main;
 
-import com.matteoveroni.javacopier.logic.JavaCopier;
-import com.matteoveroni.javacopier.logic.CopyListener;
+import com.matteoveroni.javacopier.CopyListener;
+import com.matteoveroni.javacopier.JavaCopier;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import com.matteoveroni.javacopier.pojo.CopyStatus;
+import com.matteoveroni.javacopier.CopyStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +55,7 @@ public class Main implements CopyListener {
 
     @Override
     public void onCopyProgress(CopyStatus copyStatus) {
-        LOG.debug("file copied: " + copyStatus.getCopyHistory().getHistory().size());
+        LOG.debug("file analyzed: " + copyStatus.getCopyHistory().getHistory().size());
         LOG.debug("copy percentage: " + copyStatus.getCopyPercentageInString());
     }
 

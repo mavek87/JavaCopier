@@ -1,7 +1,8 @@
-package com.matteoveroni.javacopier.pojo;
+package com.matteoveroni.javacopier;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.matteoveroni.javacopier.CopyHistory;
 import com.matteoveroni.javacopier.gsonconverters.PathToGsonConverter;
 
 import java.nio.file.CopyOption;
@@ -46,10 +47,14 @@ public class CopyStatus {
         this.copyErrors = copyErrors;
         this.copyHistory = copyHistory;
         this.copyOptions = copyOptions;
-        this.copyResult = copyResult;
         switch (copyState) {
             case DONE:
                 this.copyPercentage = 100;
+                if(copyHistory.getCopyErrors() != null && copyHistory.getCopyErrors().isEmpty()) {
+                    copyResult = CopyResult.SUCCESFULL;
+                } else {
+                    copyResult = CopyResult.FAILED;
+                }
                 break;
             case RUNNING:
             default:

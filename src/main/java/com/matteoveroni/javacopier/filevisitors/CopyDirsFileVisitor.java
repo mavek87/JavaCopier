@@ -1,4 +1,4 @@
-package com.matteoveroni.javacopier.logic.filevisitors;
+package com.matteoveroni.javacopier.filevisitors;
 
 import java.io.IOException;
 import java.nio.file.CopyOption;
@@ -10,14 +10,15 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.matteoveroni.javacopier.logic.CopyListener;
-import com.matteoveroni.javacopier.pojo.CopyHistory;
-import com.matteoveroni.javacopier.pojo.CopyHistoryEvent;
-import com.matteoveroni.javacopier.pojo.CopyStatus;
+import com.matteoveroni.javacopier.CopyListener;
+import com.matteoveroni.javacopier.CopyHistory;
+import com.matteoveroni.javacopier.CopyHistory;
+import com.matteoveroni.javacopier.CopyListener;
+import com.matteoveroni.javacopier.copyhistory.CopyHistoryEvent;
+import com.matteoveroni.javacopier.CopyStatus;
 
 import java.nio.file.FileAlreadyExistsException;
 
@@ -35,8 +36,6 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     private final Path rootSrc;
     private final int totalFiles;
     private final CopyHistory copyHistory = new CopyHistory();
-    private final List<Path> filesCopied = new ArrayList<>();
-    private final List<Path> copyErrors = new ArrayList<>();
     private final Optional<CopyListener> copyListener;
     private final CopyOption[] copyOptions;
 
@@ -111,11 +110,11 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     }
 
     public List<Path> getFilesCopied() {
-        return filesCopied;
+        return copyHistory.getFilesCopied();
     }
 
     public List<Path> getCopyErrors() {
-        return copyErrors;
+        return copyHistory.getCopyErrors();
     }
 
     public CopyHistory getCopyHistory() {
@@ -123,22 +122,21 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     }
 
     private void notifyCopyStatusProgressEventToListener() {
-        CopyStatus runningCopyStatus = new CopyStatus(rootSrc, rootDest, CopyStatus.CopyState.RUNNING, totalFiles, filesCopied, copyErrors, copyHistory, copyOptions);
+        CopyStatus runningCopyStatus = new CopyStatus(rootSrc, rootDest, CopyStatus.CopyState.RUNNING, totalFiles, getFilesCopied(), getCopyErrors(), copyHistory, copyOptions);
         copyListener.ifPresent(listener -> listener.onCopyProgress(runningCopyStatus));
     }
 
     private void registerCopySuccessEventInHistory(Path srcPath, Path destPath) {
         CopyHistoryEvent copyHistoryEvent = new CopyHistoryEvent(srcPath, destPath);
         copyHistoryEvent.setSuccesfull(true);
-        copyHistory.addEvent(copyHistoryEvent);
-        filesCopied.add(srcPath);
+        copyHistory.addHistoryEvent(copyHistoryEvent);
     }
 
     private void registerCopyFailEventInHistory(Path srcPath, Path destPath, IOException ex2) {
         CopyHistoryEvent copyHistoryEvent = new CopyHistoryEvent(srcPath, destPath);
         copyHistoryEvent.setSuccesfull(false);
         copyHistoryEvent.setException(ex2);
-        copyErrors.add(srcPath);
+        copyHistory.addHistoryEvent(copyHistoryEvent);
     }
 
     private void copyAllAttributesFromSrcToDestDirIfNeeded(Path srcDir) {

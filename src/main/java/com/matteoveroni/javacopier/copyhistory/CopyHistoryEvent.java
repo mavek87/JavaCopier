@@ -1,4 +1,4 @@
-package com.matteoveroni.javacopier.pojo;
+package com.matteoveroni.javacopier.copyhistory;
 
 import java.nio.file.Path;
 

@@ -1,4 +1,4 @@
-package com.matteoveroni.javacopier.logic.filevisitors;
+package com.matteoveroni.javacopier.filevisitors;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;

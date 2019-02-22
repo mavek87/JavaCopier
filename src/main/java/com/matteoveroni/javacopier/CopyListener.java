@@ -1,6 +1,4 @@
-package com.matteoveroni.javacopier.logic;
-
-import com.matteoveroni.javacopier.pojo.CopyStatus;
+package com.matteoveroni.javacopier;
 
 /**
  * @author Matteo Veroni

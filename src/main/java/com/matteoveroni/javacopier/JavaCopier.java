@@ -1,10 +1,9 @@
-package com.matteoveroni.javacopier.logic;
+package com.matteoveroni.javacopier;
 
-import com.matteoveroni.javacopier.logic.filevisitors.CopyDirsFileVisitor;
-import com.matteoveroni.javacopier.logic.filevisitors.CountFilesVisitor;
-import com.matteoveroni.javacopier.pojo.CopyHistory;
-import com.matteoveroni.javacopier.pojo.CopyHistoryEvent;
-import com.matteoveroni.javacopier.pojo.CopyStatus;
+import com.matteoveroni.javacopier.CopyHistory;
+import com.matteoveroni.javacopier.filevisitors.CopyDirsFileVisitor;
+import com.matteoveroni.javacopier.filevisitors.CountFilesVisitor;
+import com.matteoveroni.javacopier.copyhistory.CopyHistoryEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,32 +50,33 @@ public class JavaCopier {
         copyOptions = (copyOptions == null || copyOptions.length == 0) ? STANDARD_COPY_OPTIONS : copyOptions;
 
         LOG.debug("calculating the number of files to copy...");
-        Integer totalFilesToCopy = calculateFilesCount(src);
-        LOG.debug("number of files to copy: " + totalFilesToCopy);
+        Integer totalFiles = calculateFilesCount(src);
+        LOG.debug("number of files to copy: " + totalFiles);
 
-        CopyStatus copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.RUNNING, totalFilesToCopy, new ArrayList<>(), new ArrayList<>(), new CopyHistory(), copyOptions);
+        CopyStatus copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.RUNNING, totalFiles, new ArrayList<>(), new ArrayList<>(), new CopyHistory(), copyOptions);
         if (src.toFile().isFile() && (Files.notExists(dest) || dest.toFile().isFile())) {
             try {
                 Files.copy(src, dest, copyOptions);
-                copyStatus = getSingleCopySuccessStatus(src, dest, totalFilesToCopy, copyOptions);
+                copyStatus = getSingleCopySuccessStatus(src, dest, totalFiles, copyOptions);
             } catch (IOException ex) {
-                copyStatus = getSingleCopyFailStatus(src, dest, totalFilesToCopy, ex, copyOptions);
+                copyStatus = getSingleCopyFailStatus(src, dest, totalFiles, ex, copyOptions);
             }
         } else if (src.toFile().isFile() && dest.toFile().isDirectory()) {
             try {
                 Files.copy(src, Paths.get(dest + File.separator + src.toFile().getName()), copyOptions);
-                copyStatus = getSingleCopySuccessStatus(src, dest, totalFilesToCopy, copyOptions);
+                copyStatus = getSingleCopySuccessStatus(src, dest, totalFiles, copyOptions);
             } catch (IOException ex) {
-                copyStatus = getSingleCopyFailStatus(src, dest, totalFilesToCopy, ex, copyOptions);
+                copyStatus = getSingleCopyFailStatus(src, dest, totalFiles, ex, copyOptions);
             }
         } else if (src.toFile().isDirectory() && (Files.notExists(dest) || dest.toFile().isDirectory())) {
-            CopyDirsFileVisitor copyDirsFileVisitor = new CopyDirsFileVisitor(src, dest, totalFilesToCopy, (copyListener == null) ? Optional.empty() : Optional.of(copyListener), copyOptions);
             try {
+                CopyDirsFileVisitor copyDirsFileVisitor = new CopyDirsFileVisitor(src, dest, totalFiles, (copyListener == null) ? Optional.empty() : Optional.of(copyListener), copyOptions);
                 Files.walkFileTree(src, copyDirsFileVisitor);
+                copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFiles, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyDirsFileVisitor.getCopyHistory(), copyOptions);
             } catch (IOException ex) {
-                LOG.debug(ex.toString());
+                LOG.debug("Severe error it should not happen --->> " + ex.toString());
+                copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFiles, null, null, new CopyHistory(), copyOptions);
             }
-            copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, copyDirsFileVisitor.getFilesCopied(), copyDirsFileVisitor.getCopyErrors(), copyDirsFileVisitor.getCopyHistory(), copyOptions);
         } else {
             throw new IllegalArgumentException(ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
         }
@@ -90,19 +90,19 @@ public class JavaCopier {
         }
     }
 
-    private static CopyStatus getSingleCopySuccessStatus(Path src, Path dest, Integer totalFilesToCopy, CopyOption[] copyOptions) {
+    private static CopyStatus getSingleCopySuccessStatus(Path src, Path dest, Integer totalFiles, CopyOption[] copyOptions) {
         CopyStatus copyStatus;
         CopyHistory copyHistory = new CopyHistory();
-        copyHistory.addEvent(new CopyHistoryEvent(src, dest, true, null));
-        copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, Arrays.asList(src), new ArrayList<>(), copyHistory, copyOptions);
+        copyHistory.addHistoryEvent(new CopyHistoryEvent(src, dest, true, null));
+        copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFiles, Arrays.asList(src), new ArrayList<>(), copyHistory, copyOptions);
         return copyStatus;
     }
 
-    private static CopyStatus getSingleCopyFailStatus(Path src, Path dest, Integer totalFilesToCopy, IOException ex, CopyOption[] copyOptions) {
+    private static CopyStatus getSingleCopyFailStatus(Path src, Path dest, Integer totalFiles, IOException ex, CopyOption[] copyOptions) {
         CopyStatus copyStatus;
         CopyHistory copyHistory = new CopyHistory();
-        copyHistory.addEvent(new CopyHistoryEvent(src, dest, false, ex));
-        copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFilesToCopy, new ArrayList<>(), Arrays.asList(src), copyHistory, copyOptions);
+        copyHistory.addHistoryEvent(new CopyHistoryEvent(src, dest, false, ex));
+        copyStatus = new CopyStatus(src, dest, CopyStatus.CopyState.DONE, totalFiles, new ArrayList<>(), Arrays.asList(src), copyHistory, copyOptions);
         return copyStatus;
     }
 

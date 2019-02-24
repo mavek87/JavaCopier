@@ -4,3 +4,5 @@
 /nbproject/
 /.idea/
 JavaCopier.iml
+/.nb-gradle
+/out

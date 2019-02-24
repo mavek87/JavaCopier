@@ -17,12 +17,11 @@ import java.util.Optional;
  */
 public class JavaCopier {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JavaCopier.class);
-
     public static final CopyOption[] STANDARD_COPY_OPTIONS = new CopyOption[]{StandardCopyOption.COPY_ATTRIBUTES};
-    static final String ERROR_MSG_SRC_OR_DEST_NULL = "src and dest cannot be null";
-    static final String ERROR_MSG_SRC_MUST_EXIST = "src must exist";
-    static final String ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE = "cannot copy a directory into a file";
+    protected static final String ERROR_MSG_SRC_OR_DEST_NULL = "src and dest cannot be null";
+    protected static final String ERROR_MSG_SRC_MUST_EXIST = "src must exist";
+    protected static final String ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE = "cannot copy a directory into a file";
+    private static final Logger LOG = LoggerFactory.getLogger(JavaCopier.class);
 
     public static CopyStatusReport copy(File src, File dest, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
         return copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), null, copyOptions);
@@ -32,60 +31,40 @@ public class JavaCopier {
         return copy(src, dest, null, copyOptions);
     }
 
-    public static CopyStatusReport copy(File src, File dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException {
+    public static CopyStatusReport copy(File src, File dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
         return copy((src == null) ? null : src.toPath(), (dest == null) ? null : dest.toPath(), copyListener, copyOptions);
     }
 
-    public static CopyStatusReport copy(Path src, Path dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException {
+    public static CopyStatusReport copy(Path src, Path dest, CopyListener copyListener, CopyOption... copyOptions) throws IllegalArgumentException, IOException {
         if (src == null || dest == null) {
             throw new IllegalArgumentException(ERROR_MSG_SRC_OR_DEST_NULL);
-        }
-        if (Files.notExists(src)) {
+        } else if (Files.notExists(src)) {
             throw new IllegalArgumentException(ERROR_MSG_SRC_MUST_EXIST);
+        } else if (src.toFile().isDirectory() && (Files.exists(dest) && dest.toFile().isFile())) {
+            throw new IllegalArgumentException(ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
         }
-
-        copyOptions = (copyOptions == null || copyOptions.length == 0) ? STANDARD_COPY_OPTIONS : copyOptions;
 
         LOG.debug("calculating the number of files to copy...");
-        Integer totalFiles = 0;
-        try {
-            totalFiles = calculateFilesCount(src);
-        } catch (IOException ex) {
-            return buildCopyFailStatusReport(src, dest, totalFiles, ex, copyOptions);
-        }
+        Integer totalFiles = calculateFilesCount(src);
         LOG.debug("number of files to copy: " + totalFiles);
-
-        CopyStatusReport copyStatus = new CopyStatusReport(src, dest, CopyStatusReport.CopyState.RUNNING, totalFiles, new CopyHistory(), copyOptions);
-//        try {
-            if (src.toFile().isFile() && (Files.notExists(dest) || dest.toFile().isFile())) {
-                try {
-                    Files.copy(src, dest, copyOptions);
-                    copyStatus = buildCopySuccessStatusReport(src, dest, totalFiles, copyOptions);
-                } catch (IOException ex) {
-                    copyStatus = buildCopyFailStatusReport(src, dest, totalFiles, ex, copyOptions);
-                }
-            } else if (src.toFile().isFile() && dest.toFile().isDirectory()) {
-                try {
-                    Files.copy(src, Paths.get(dest + File.separator + src.toFile().getName()), copyOptions);
-                    copyStatus = buildCopySuccessStatusReport(src, dest, totalFiles, copyOptions);
-                } catch (IOException ex) {
-                    copyStatus = buildCopyFailStatusReport(src, dest, totalFiles, ex, copyOptions);
-                }
-            } else if (src.toFile().isDirectory() && (Files.notExists(dest) || dest.toFile().isDirectory())) {
-                try {
-                    CopyDirsFileVisitor copyDirsFileVisitor = new CopyDirsFileVisitor(src, dest, totalFiles, (copyListener == null) ? Optional.empty() : Optional.of(copyListener), copyOptions);
-                    Files.walkFileTree(src, copyDirsFileVisitor);
-                    copyStatus = buildCopySuccessStatusReport(src, dest, totalFiles, copyOptions);
-                } catch (IOException ex) {
-                    LOG.debug("Severe error it should not happen --->> " + ex.toString());
-                    copyStatus = buildCopyFailStatusReport(src, dest, totalFiles, ex, copyOptions);
-                }
-            } else {
-                throw new IllegalArgumentException(ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
-            }
-//        } catch (IOException ex) {
         
-//        }
+        copyOptions = (copyOptions == null || copyOptions.length == 0) ? STANDARD_COPY_OPTIONS : copyOptions;
+        
+        CopyStatusReport copyStatus;
+        try {
+            if (src.toFile().isFile() && (Files.notExists(dest) || dest.toFile().isFile())) {
+                Files.copy(src, dest, copyOptions);
+            } else if (src.toFile().isFile() && dest.toFile().isDirectory()) {
+                Files.copy(src, Paths.get(dest + File.separator + src.toFile().getName()), copyOptions);
+            } else if (src.toFile().isDirectory() && (Files.notExists(dest) || dest.toFile().isDirectory())) {
+                CopyDirsFileVisitor copyDirsFileVisitor = new CopyDirsFileVisitor(src, dest, totalFiles, (copyListener == null) ? Optional.empty() : Optional.of(copyListener), copyOptions);
+                Files.walkFileTree(src, copyDirsFileVisitor);
+            }
+            copyStatus = buildCopySuccessStatusReport(src, dest, totalFiles, copyOptions);
+        } catch (IOException ex) {
+            LOG.debug("Exception: " + ex.toString());
+            copyStatus = buildCopyFailStatusReport(src, dest, totalFiles, ex, copyOptions);
+        }
         notifyCopyStateToListener(copyListener, copyStatus);
         return copyStatus;
     }

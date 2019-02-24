@@ -14,7 +14,6 @@ import java.nio.file.Path;
 public class CopyStatusReport {
 
     private transient final Gson gson = new GsonBuilder()
-        //            .registerTypeAdapter(Path.class, new PathToGsonConverter())
         .registerTypeHierarchyAdapter(Path.class, new PathToGsonConverter())
         .create();
 
@@ -23,7 +22,7 @@ public class CopyStatusReport {
     }
 
     public enum FinalResult {
-        NOT_ELABORATED, COPY_SUCCESFULL, COPY_FAILED, COPY_PARTIAL
+        NOT_ELABORATED, COPY_SUCCESSFUL, COPY_FAILED, COPY_PARTIAL
     }
 
     private final Path src;
@@ -58,7 +57,7 @@ public class CopyStatusReport {
                 if (copyHistory.getCopyErrors().size() >= totalFiles) {
                     result = FinalResult.COPY_FAILED;
                 } else if (copyHistory.getCopyErrors().isEmpty()) {
-                    result = FinalResult.COPY_SUCCESFULL;
+                    result = FinalResult.COPY_SUCCESSFUL;
                 } else {
                     result = FinalResult.COPY_PARTIAL;
                 }

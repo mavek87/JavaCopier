@@ -1,8 +1,10 @@
-/build/
-/.gradle/
-/dist/
-/nbproject/
 /.idea/
-JavaCopier.iml
+/nbproject/
 /.nb-gradle
+/.gradle/
+/build/
 /out
+/dist/
+JavaCopier.iml
+.*
+/destDir

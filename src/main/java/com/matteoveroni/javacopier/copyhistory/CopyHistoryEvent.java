@@ -9,19 +9,19 @@ public class CopyHistoryEvent {
 
     private static Long CURRENT_ID = 1L;
 
-    private Long id;
-    private Path src;
-    private Path dest;
-    private boolean successful;
-    private String exceptionMessage = "";
+    private final Long id;
+    private final Path src;
+    private final Path dest;
+    private final boolean successful;
+    private final String exceptionMessage;
 
     private CopyHistoryEvent(Path src, Path dest, boolean successful, String exceptionMessage) {
         this.id = CURRENT_ID;
-        CURRENT_ID++;
         this.src = src;
         this.dest = dest;
         this.successful = successful;
         this.exceptionMessage = exceptionMessage;
+        CURRENT_ID++;
     }
 
     public static class Builder {
@@ -60,31 +60,16 @@ public class CopyHistoryEvent {
         return src;
     }
 
-    public void setSrc(Path src) {
-        this.src = src;
-    }
-
     public Path getDest() {
         return dest;
-    }
-
-    public void setDest(Path dest) {
-        this.dest = dest;
     }
 
     public boolean isSuccessful() {
         return successful;
     }
 
-    public void setSuccesfull(boolean successful) {
-        this.successful = successful;
-    }
-
     public String getExceptionMessage() {
         return exceptionMessage;
     }
 
-    public void setException(Exception exception) {
-        this.exceptionMessage = exception.toString();
-    }
 }

@@ -1,4 +1,4 @@
-package com.matteoveroni.javacopier;
+package com.matteoveroni.javacopier.copystatus;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -18,7 +18,7 @@ public class CopyStatusReport {
         .create();
 
     public enum CopyState {
-        READY, RUNNING, DONE;
+        RUNNING, DONE;
     }
 
     public enum FinalResult {
@@ -42,11 +42,6 @@ public class CopyStatusReport {
         this.copyHistory = copyHistory;
         this.copyOptions = copyOptions;
         switch (copyState) {
-
-            case READY:
-                copyPercentage = 0.0;
-                result = FinalResult.NOT_ELABORATED;
-                break;
 
             case DONE:
                 copyPercentage = 100.0;

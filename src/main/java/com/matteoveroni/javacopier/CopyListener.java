@@ -1,5 +1,7 @@
 package com.matteoveroni.javacopier;
 
+import com.matteoveroni.javacopier.copystatus.CopyStatusReport;
+
 /**
  * @author Matteo Veroni
  */

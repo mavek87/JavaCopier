@@ -5,9 +5,8 @@ import com.matteoveroni.javacopier.JavaCopier;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
-import com.matteoveroni.javacopier.CopyStatusReport;
+import com.matteoveroni.javacopier.copystatus.CopyStatusReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -43,7 +43,7 @@ public class CopyHistoryEvent {
 
         public Builder setFailed(Exception ex) {
             this.successful = false;
-            this.exceptionMessage = ex.getMessage();
+            this.exceptionMessage = ex.toString();
             return this;
         }
 

@@ -1,4 +1,4 @@
-package com.matteoveroni.javacopier.copystatus;
+package com.matteoveroni.javacopier;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -17,6 +17,11 @@ public class CopyStatusReport {
         .registerTypeHierarchyAdapter(Path.class, new PathToGsonConverter())
         .create();
 
+    private transient final Gson prettygson = new GsonBuilder()
+            .registerTypeHierarchyAdapter(Path.class, new PathToGsonConverter())
+            .setPrettyPrinting()
+            .create();
+
     public enum CopyState {
         RUNNING, DONE;
     }
@@ -30,9 +35,9 @@ public class CopyStatusReport {
     private final int totalFiles;
     private final CopyState copyState;
     private final double copyPercentage;
-    private final CopyHistory copyHistory;
     private final FinalResult result;
     private final CopyOption[] copyOptions;
+    private final CopyHistory copyHistory;
 
     public CopyStatusReport(Path src, Path dest, CopyState copyState, int totalFiles, CopyHistory copyHistory, CopyOption... copyOptions) {
         this.src = src;
@@ -105,6 +110,10 @@ public class CopyStatusReport {
     @Override
     public String toString() {
         return gson.toJson(this);
+    }
+
+    public String toPrettyString() {
+        return prettygson.toJson(this);
     }
 
     private double calculateCopyPercentage() {

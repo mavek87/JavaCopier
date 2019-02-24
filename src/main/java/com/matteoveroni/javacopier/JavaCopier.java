@@ -1,7 +1,6 @@
 package com.matteoveroni.javacopier;
 
 import com.matteoveroni.javacopier.copyhistory.CopyHistory;
-import com.matteoveroni.javacopier.copystatus.CopyStatusReport;
 import com.matteoveroni.javacopier.filevisitors.CopyDirsFileVisitor;
 import com.matteoveroni.javacopier.filevisitors.CountFilesVisitor;
 import com.matteoveroni.javacopier.copyhistory.CopyHistoryEvent;

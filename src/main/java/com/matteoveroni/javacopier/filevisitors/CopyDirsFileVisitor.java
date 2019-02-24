@@ -13,7 +13,7 @@ import java.nio.file.attribute.FileTime;
 
 import com.matteoveroni.javacopier.CopyListener;
 import com.matteoveroni.javacopier.copyhistory.CopyHistoryEvent;
-import com.matteoveroni.javacopier.copystatus.CopyStatusReport;
+import com.matteoveroni.javacopier.CopyStatusReport;
 import com.matteoveroni.javacopier.copyhistory.CopyHistory;
 
 import java.nio.file.FileAlreadyExistsException;
@@ -39,7 +39,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         this.rootSrc = rootSrc;
         this.rootDest = destSrc;
         this.totalFiles = totalFiles;
-        this.copyHistory =  copyHistory;
+        this.copyHistory = copyHistory;
         this.copyOptions = copyOptions;
         this.copyListener = copyListener;
     }
@@ -54,9 +54,14 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
             registerCopySuccessEventInHistory(srcDir, destDir);
             notifyCopyStatusProgressEventToListener();
             return FileVisitResult.CONTINUE;
-        } catch (IOException ex) {
+        } catch (FileAlreadyExistsException ex) {
             LOG.warn("Unable to create destDir: " + destDir + ", ex: " + ex.toString());
-            registerCopyFailEventInHistory(srcDir, destDir, ex);
+            registerCopySuccessEventInHistory(srcDir, destDir);
+            notifyCopyStatusProgressEventToListener();
+            return FileVisitResult.CONTINUE;
+        } catch (IOException ioe) {
+            LOG.warn("Unable to create destDir: " + destDir + ", ex: " + ioe.toString());
+            registerCopyFailEventInHistory(srcDir, destDir, ioe);
             notifyCopyStatusProgressEventToListener();
             return FileVisitResult.SKIP_SUBTREE;
         }
@@ -69,9 +74,6 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         try {
             Files.copy(srcFile, destFile, copyOptions);
             LOG.info("srcFile " + srcFile + " visited and copied to destFile: " + destFile);
-            registerCopySuccessEventInHistory(srcFile, destFile);
-        } catch (FileAlreadyExistsException ex) {
-            LOG.warn("srcFile " + srcFile + " visited but not copied, destFile: " + destFile + " exists already");
             registerCopySuccessEventInHistory(srcFile, destFile);
         } catch (IOException ioe) {
             LOG.error("Unable to copy: " + srcFile + ", ex: " + ioe.toString());

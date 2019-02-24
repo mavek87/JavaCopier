@@ -3,10 +3,12 @@ package com.matteoveroni.javacopier.main;
 import com.matteoveroni.javacopier.CopyListener;
 import com.matteoveroni.javacopier.JavaCopier;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
-import com.matteoveroni.javacopier.copystatus.CopyStatusReport;
+import com.matteoveroni.javacopier.CopyStatusReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public class Main implements CopyListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
-    private static final String SRC_LINUX = "/home/mavek/src/";
+    private static final String SRC_LINUX = "/home/mavek/Giuffre/";
     private static final String DEST_LINUX = "/home/mavek/dest/";
     private static final String SRC_WIN = "C:\\users\\veroni\\vertx";
     private static final String DEST_WIN = "C:\\users\\veroni\\dest2\\";
@@ -49,7 +51,7 @@ public class Main implements CopyListener {
         }
 
 //        JavaCopier.copy(srcPath, destPath, this, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
-        CopyStatusReport copy = JavaCopier.copy(srcPath, destPath, this);
+        CopyStatusReport copyStatusReport = JavaCopier.copy(srcPath, destPath, this);
     }
 
     @Override
@@ -59,7 +61,7 @@ public class Main implements CopyListener {
     }
 
     @Override
-    public void onCopyCompleted(CopyStatusReport finalCopyStatus) {
-        LOG.debug("copy completed " + finalCopyStatus);
+    public void onCopyCompleted(CopyStatusReport finalCopyStatusReport) {
+        LOG.debug("copy completed " + finalCopyStatusReport.toPrettyString());
     }
 }

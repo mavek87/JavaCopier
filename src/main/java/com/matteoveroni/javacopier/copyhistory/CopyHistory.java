@@ -14,7 +14,7 @@ public class CopyHistory {
     private final List<Path> copyErrors = new ArrayList<>();
     private int analyzedFiles = 0;
 
-    public final CopyHistory addHistoryEvent(CopyHistoryEvent event) {
+    public final void addHistoryEvent(CopyHistoryEvent event) {
         history.add(event);
         Path src = event.getSrc();
         if(event.isSuccessful()) {
@@ -23,17 +23,8 @@ public class CopyHistory {
             copyErrors.add(src);
         }
         analyzedFiles++;
-        return this;
     }
     
-    public final CopyHistory build(){
-        CopyHistory copyHistory = new CopyHistory();
-        for (CopyHistoryEvent event : history) {
-            copyHistory.addHistoryEvent(event);
-        }
-        return copyHistory;
-    }
-
     public List<CopyHistoryEvent> getHistory() {
         return history;
     }

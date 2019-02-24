@@ -15,17 +15,41 @@ public class CopyHistoryEvent {
     private boolean successful;
     private String exceptionMessage = "";
 
-    public CopyHistoryEvent(Path src, Path dest) {
+    private CopyHistoryEvent(Path src, Path dest, boolean successful, String exceptionMessage) {
+        this.id = CURRENT_ID;
+        CURRENT_ID++;
         this.src = src;
         this.dest = dest;
-        id = CURRENT_ID;
-        CURRENT_ID++;
+        this.successful = successful;
+        this.exceptionMessage = exceptionMessage;
     }
 
-    public CopyHistoryEvent(Path src, Path dest, boolean successful, Exception ex) {
-        this(src, dest);
-        this.successful = successful;
-        this.exceptionMessage = ex.toString();
+    public static class Builder {
+
+        private final Path src;
+        private final Path dest;
+        private boolean successful;
+        private String exceptionMessage = "";
+
+        public Builder(Path src, Path dest) {
+            this.src = src;
+            this.dest = dest;
+        }
+
+        public Builder setSuccessful() {
+            this.successful = true;
+            return this;
+        }
+
+        public Builder setFailed(Exception ex) {
+            this.successful = false;
+            this.exceptionMessage = ex.getMessage();
+            return this;
+        }
+
+        public CopyHistoryEvent build() {
+            return new CopyHistoryEvent(src, dest, successful, exceptionMessage);
+        }
     }
 
     public Long getId() {

@@ -47,9 +47,9 @@ public class JavaCopier {
         LOG.debug("calculating the number of files to copy...");
         Integer totalFiles = calculateFilesCount(src);
         LOG.debug("number of files to copy: " + totalFiles);
-        
+
         copyOptions = (copyOptions == null || copyOptions.length == 0) ? STANDARD_COPY_OPTIONS : copyOptions;
-        
+
         CopyStatusReport copyStatus;
         try {
             if (src.toFile().isFile() && (Files.notExists(dest) || dest.toFile().isFile())) {
@@ -77,13 +77,21 @@ public class JavaCopier {
 
     private static CopyStatusReport buildCopySuccessStatusReport(Path src, Path dest, Integer totalFiles, CopyOption[] copyOptions) {
         CopyHistory copyHistory = new CopyHistory();
-        copyHistory.addHistoryEvent(new CopyHistoryEvent(src, dest, true, null));
+        copyHistory.addHistoryEvent(
+            new CopyHistoryEvent.Builder(src, dest)
+            .setSuccessful()
+            .build()
+        );
         return new CopyStatusReport(src, dest, CopyStatusReport.CopyState.DONE, totalFiles, copyHistory, copyOptions);
     }
 
     private static CopyStatusReport buildCopyFailStatusReport(Path src, Path dest, Integer totalFiles, IOException ex, CopyOption[] copyOptions) {
         CopyHistory copyHistory = new CopyHistory();
-        copyHistory.addHistoryEvent(new CopyHistoryEvent(src, dest, false, ex));
+        copyHistory.addHistoryEvent(
+            new CopyHistoryEvent.Builder(src, dest)
+                .setFailed(ex)
+                .build()
+        );
         return new CopyStatusReport(src, dest, CopyStatusReport.CopyState.DONE, totalFiles, copyHistory, copyOptions);
     }
 

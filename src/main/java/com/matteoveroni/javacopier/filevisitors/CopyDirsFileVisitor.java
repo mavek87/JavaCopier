@@ -118,16 +118,19 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
     }
 
     private void registerCopySuccessEventInHistory(Path srcPath, Path destPath) {
-        CopyHistoryEvent copyHistoryEvent = new CopyHistoryEvent(srcPath, destPath);
-        copyHistoryEvent.setSuccesfull(true);
-        copyHistory.addHistoryEvent(copyHistoryEvent);
+        copyHistory.addHistoryEvent(
+            new CopyHistoryEvent.Builder(srcPath, destPath)
+            .setSuccessful()
+            .build()
+        );
     }
 
-    private void registerCopyFailEventInHistory(Path srcPath, Path destPath, IOException ex2) {
-        CopyHistoryEvent copyHistoryEvent = new CopyHistoryEvent(srcPath, destPath);
-        copyHistoryEvent.setSuccesfull(false);
-        copyHistoryEvent.setException(ex2);
-        copyHistory.addHistoryEvent(copyHistoryEvent);
+    private void registerCopyFailEventInHistory(Path srcPath, Path destPath, IOException ex) {
+        copyHistory.addHistoryEvent(
+            new CopyHistoryEvent.Builder(srcPath, destPath)
+            .setFailed(ex)
+            .build()
+        );
     }
 
     private void notifyCopyStatusProgressEventToListener() {

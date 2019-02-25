@@ -103,7 +103,7 @@ public class JavaCopier {
     }
 
     private static void registerSingleCopySuccessToHistory(Path src, Path dest, CopyHistory copyHistory) {
-        copyHistory.addHistoryEvent(
+        copyHistory.registerHistoryEvent(
                 new CopyHistoryEvent.Builder(src, dest)
                         .setSuccessful()
                         .build()
@@ -111,7 +111,7 @@ public class JavaCopier {
     }
 
     private static void registerSingleCopyFailureToHistory(Path src, Path dest, IOException ex, CopyHistory copyHistory) {
-        copyHistory.addHistoryEvent(
+        copyHistory.registerHistoryEvent(
                 new CopyHistoryEvent.Builder(src, dest)
                         .setFailed(ex)
                         .build()

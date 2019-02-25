@@ -40,7 +40,7 @@ public class PrintFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult preVisitDirectory(Path srcDir, BasicFileAttributes attrs) throws IOException {
         logPathToOutputStream(srcDir);
-        registerCopySuccessEventInHistory(srcDir, rootDest);
+        copyHistory.registerCopySuccessEventInHistory(srcDir, rootDest);
         notifyCopyStatusProgressEventToListener();
         return FileVisitResult.CONTINUE;
     }
@@ -48,7 +48,7 @@ public class PrintFileVisitor implements FileVisitor<Path> {
     @Override
     public FileVisitResult visitFile(Path srcFile, BasicFileAttributes attrs) throws IOException {
         logPathToOutputStream(srcFile);
-        registerCopySuccessEventInHistory(srcFile, rootDest);
+        copyHistory.registerCopySuccessEventInHistory(srcFile, rootDest);
         notifyCopyStatusProgressEventToListener();
         return FileVisitResult.CONTINUE;
     }
@@ -57,7 +57,7 @@ public class PrintFileVisitor implements FileVisitor<Path> {
     public FileVisitResult visitFileFailed(Path srcFile, IOException ex) throws IOException {
         if (ex != null) {
             LOG.error("Visit file failed exception: " + ex.toString());
-            registerCopyFailEventInHistory(srcFile, rootDest, ex);
+            copyHistory.registerCopyFailEventInHistory(srcFile, rootDest, ex);
             notifyCopyStatusProgressEventToListener();
         }
         return FileVisitResult.CONTINUE;
@@ -67,7 +67,7 @@ public class PrintFileVisitor implements FileVisitor<Path> {
     public FileVisitResult postVisitDirectory(Path srcDir, IOException ex) throws IOException {
         if (ex != null) {
             LOG.error("Post visit directory exception: " + ex.toString());
-            registerCopyFailEventInHistory(srcDir, rootDest, ex);
+            copyHistory.registerCopyFailEventInHistory(srcDir, rootDest, ex);
             notifyCopyStatusProgressEventToListener();
         }
         return FileVisitResult.CONTINUE;
@@ -80,22 +80,6 @@ public class PrintFileVisitor implements FileVisitor<Path> {
     private void logPathToOutputStream(Path path) {
         LOG.debug(path.toString());
         printWriter.println(path.toString());
-    }
-
-    private void registerCopySuccessEventInHistory(Path srcPath, Path destPath) {
-        copyHistory.addHistoryEvent(
-                new CopyHistoryEvent.Builder(srcPath, destPath)
-                        .setSuccessful()
-                        .build()
-        );
-    }
-
-    private void registerCopyFailEventInHistory(Path srcPath, Path destPath, IOException ex) {
-        copyHistory.addHistoryEvent(
-                new CopyHistoryEvent.Builder(srcPath, destPath)
-                        .setFailed(ex)
-                        .build()
-        );
     }
 
     private void notifyCopyStatusProgressEventToListener() {

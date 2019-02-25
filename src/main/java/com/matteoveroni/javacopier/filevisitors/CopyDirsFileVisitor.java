@@ -50,17 +50,17 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         try {
             Files.createDirectory(destDir);
             LOG.debug("destDir: " + destDir + " created");
-            registerCopySuccessEventInHistory(srcDir, destDir);
+            copyHistory.registerCopySuccessEventInHistory(srcDir, destDir);
             notifyCopyStatusProgressEventToListener();
             return FileVisitResult.CONTINUE;
         } catch (FileAlreadyExistsException ex) {
             LOG.warn("Unable to create destDir: " + destDir + ", ex: " + ex.toString());
-            registerCopySuccessEventInHistory(srcDir, destDir);
+            copyHistory.registerCopySuccessEventInHistory(srcDir, destDir);
             notifyCopyStatusProgressEventToListener();
             return FileVisitResult.CONTINUE;
         } catch (IOException ioe) {
             LOG.error("Unable to create destDir: " + destDir + ", ex: " + ioe.toString());
-            registerCopyFailEventInHistory(srcDir, destDir, ioe);
+            copyHistory.registerCopyFailEventInHistory(srcDir, destDir, ioe);
             notifyCopyStatusProgressEventToListener();
             return FileVisitResult.SKIP_SUBTREE;
         }
@@ -73,10 +73,10 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         try {
             Files.copy(srcFile, destFile, copyOptions);
             LOG.debug("srcFile " + srcFile + " visited and copied to destFile: " + destFile);
-            registerCopySuccessEventInHistory(srcFile, destFile);
+            copyHistory.registerCopySuccessEventInHistory(srcFile, destFile);
         } catch (IOException ioe) {
             LOG.error("Unable to copy: " + srcFile + ", ex: " + ioe.toString());
-            registerCopyFailEventInHistory(srcFile, destFile, ioe);
+            copyHistory.registerCopyFailEventInHistory(srcFile, destFile, ioe);
         }
         notifyCopyStatusProgressEventToListener();
         return FileVisitResult.CONTINUE;
@@ -91,7 +91,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         } else {
             LOG.warn("Unable to access: " + srcPath + ", ex: " + ex.toString());
         }
-        registerCopyFailEventInHistory(srcPath, destPath, ex);
+        copyHistory.registerCopyFailEventInHistory(srcPath, destPath, ex);
         notifyCopyStatusProgressEventToListener();
         return FileVisitResult.CONTINUE;
     }
@@ -103,22 +103,6 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
             copyAllAttributesFromSrcToDestDirIfNeeded(srcDir);
         }
         return FileVisitResult.CONTINUE;
-    }
-
-    private void registerCopySuccessEventInHistory(Path srcPath, Path destPath) {
-        copyHistory.addHistoryEvent(
-                new CopyHistoryEvent.Builder(srcPath, destPath)
-                        .setSuccessful()
-                        .build()
-        );
-    }
-
-    private void registerCopyFailEventInHistory(Path srcPath, Path destPath, IOException ex) {
-        copyHistory.addHistoryEvent(
-                new CopyHistoryEvent.Builder(srcPath, destPath)
-                        .setFailed(ex)
-                        .build()
-        );
     }
 
     private void notifyCopyStatusProgressEventToListener() {
@@ -134,7 +118,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         try {
             FileTime time = Files.getLastModifiedTime(srcDir);
             Files.setLastModifiedTime(destDir, time);
-            LOG.info("Dest dir " + destDir + " attributes copied from srcDir " + srcDir);
+            LOG.debug("Dest dir " + destDir + " attributes copied from srcDir " + srcDir);
         } catch (IOException ex) {
             LOG.warn("Unable to copy all attributes to: " + destDir + ", ex: " + ex.toString());
         }

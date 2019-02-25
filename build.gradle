@@ -16,3 +16,13 @@ dependencies {
     compile group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
+
+jar {
+//    manifest {
+//        attributes "Main-Class": "com.baeldung.fatjar.Application"
+//    }
+ 
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}

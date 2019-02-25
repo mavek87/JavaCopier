@@ -1,6 +1,7 @@
 package com.matteoveroni.javacopier;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -160,9 +161,8 @@ public class JavaCopierTest {
 
     private File createTempFileWithContent(String prefix, String fileContent) throws IOException {
         File file = File.createTempFile(prefix, null);
-        Files.write(file.toPath(), fileContent.getBytes());
-        // TODO: verify this code
         file.deleteOnExit();
+        Files.write(file.toPath(), fileContent.getBytes());
         return file;
     }
 

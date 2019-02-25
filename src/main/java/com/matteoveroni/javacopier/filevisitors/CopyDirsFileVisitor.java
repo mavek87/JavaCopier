@@ -27,9 +27,8 @@ import org.slf4j.LoggerFactory;
 public class CopyDirsFileVisitor implements FileVisitor<Path> {
 
     private final static Logger LOG = LoggerFactory.getLogger(CopyDirsFileVisitor.class);
-
-    private final Path rootDest;
     private final Path rootSrc;
+    private final Path rootDest;
     private final int totalFiles;
     private final CopyHistory copyHistory;
     private final CopyListener copyListener;

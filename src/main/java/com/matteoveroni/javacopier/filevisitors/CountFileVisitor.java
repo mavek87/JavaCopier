@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author Matteo Veroni
  */
-public class CountFilesVisitor implements FileVisitor<Path> {
+public class CountFileVisitor implements FileVisitor<Path> {
 
     private final AtomicInteger fileCounter = new AtomicInteger(0);
 
@@ -19,25 +19,25 @@ public class CountFilesVisitor implements FileVisitor<Path> {
     }
 
     @Override
-    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
         fileCounter.getAndIncrement();
         return FileVisitResult.CONTINUE;
     }
 
     @Override
-    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
         fileCounter.getAndIncrement();
         return FileVisitResult.CONTINUE;
     }
 
     @Override
-    public FileVisitResult visitFileFailed(Path file, IOException ex) throws IOException {
+    public FileVisitResult visitFileFailed(Path file, IOException ex) {
         fileCounter.getAndIncrement();
         return FileVisitResult.CONTINUE;
     }
 
     @Override
-    public FileVisitResult postVisitDirectory(Path dir, IOException ex) throws IOException {
+    public FileVisitResult postVisitDirectory(Path dir, IOException ex)  {
         return FileVisitResult.CONTINUE;
     }
 }

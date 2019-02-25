@@ -13,9 +13,11 @@ public class CopyHistory {
     private final List<CopyHistoryEvent> history = new ArrayList<>();
     private final List<Path> copiedFiles = new ArrayList<>();
     private final List<Path> copiesFailed = new ArrayList<>();
+    private String lastCopyHistoryEventMessage;
     private int analyzedFiles = 0;
 
     public final void registerCopyFailEventInHistory(Path srcPath, Path destPath, IOException ex) {
+        lastCopyHistoryEventMessage = "src: " + srcPath + " copy to dest: " + destPath + " failed, ex: " + ex.toString();
         registerHistoryEvent(
                 new CopyHistoryEvent.Builder(srcPath, destPath)
                         .setFailed(ex)
@@ -24,6 +26,7 @@ public class CopyHistory {
     }
 
     public final void registerCopySuccessEventInHistory(Path srcPath, Path destPath) {
+        lastCopyHistoryEventMessage = "src: " + srcPath + " copy to dest: " + destPath + " successful";
         registerHistoryEvent(
                 new CopyHistoryEvent.Builder(srcPath, destPath)
                         .setSuccessful()
@@ -33,6 +36,10 @@ public class CopyHistory {
 
     public List<CopyHistoryEvent> getHistory() {
         return history;
+    }
+
+    public String getLastCopyHistoryEventMessage() {
+        return lastCopyHistoryEventMessage;
     }
 
     public List<Path> getCopiedFiles() {

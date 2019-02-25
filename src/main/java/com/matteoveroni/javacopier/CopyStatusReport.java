@@ -33,13 +33,13 @@ public class CopyStatusReport {
     private final Path src;
     private final Path dest;
     private final int totalFiles;
+    private final CopyHistory copyHistory;
     private final int numberOfCopiedFiles;
     private final int numberOfCopiesFailed;
     private final CopyState copyState;
     private final double copyPercentage;
     private final FinalResult result;
     private final CopyOption[] copyOptions;
-    private final CopyHistory copyHistory;
 
     public CopyStatusReport(Path src, Path dest, CopyState copyState, int totalFiles, CopyHistory copyHistory, CopyOption... copyOptions) {
         this.src = src;

@@ -50,7 +50,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         Path destDir = calculateDestPath(srcDir);
         try {
             Files.createDirectory(destDir);
-            LOG.info("destDir: " + destDir + " created");
+            LOG.debug("destDir: " + destDir + " created");
             registerCopySuccessEventInHistory(srcDir, destDir);
             notifyCopyStatusProgressEventToListener();
             return FileVisitResult.CONTINUE;
@@ -60,7 +60,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
             notifyCopyStatusProgressEventToListener();
             return FileVisitResult.CONTINUE;
         } catch (IOException ioe) {
-            LOG.warn("Unable to create destDir: " + destDir + ", ex: " + ioe.toString());
+            LOG.error("Unable to create destDir: " + destDir + ", ex: " + ioe.toString());
             registerCopyFailEventInHistory(srcDir, destDir, ioe);
             notifyCopyStatusProgressEventToListener();
             return FileVisitResult.SKIP_SUBTREE;
@@ -73,7 +73,7 @@ public class CopyDirsFileVisitor implements FileVisitor<Path> {
         Path destFile = calculateDestPath(srcFile);
         try {
             Files.copy(srcFile, destFile, copyOptions);
-            LOG.info("srcFile " + srcFile + " visited and copied to destFile: " + destFile);
+            LOG.debug("srcFile " + srcFile + " visited and copied to destFile: " + destFile);
             registerCopySuccessEventInHistory(srcFile, destFile);
         } catch (IOException ioe) {
             LOG.error("Unable to copy: " + srcFile + ", ex: " + ioe.toString());

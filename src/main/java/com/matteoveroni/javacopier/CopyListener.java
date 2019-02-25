@@ -6,5 +6,5 @@ package com.matteoveroni.javacopier;
 public interface CopyListener {
     void onCopyProgress(CopyStatusReport copyStatusReport);
 
-    void onCopyCompleted(CopyStatusReport finalCopyStatusReport);
+    void onCopyComplete(CopyStatusReport finalCopyStatusReport);
 }

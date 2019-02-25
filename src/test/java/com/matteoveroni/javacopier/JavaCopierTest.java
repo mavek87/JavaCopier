@@ -53,7 +53,7 @@ public class JavaCopierTest {
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage(JavaCopier.ERROR_MSG_SRC_OR_DEST_NULL);
 
-        JavaCopier.copy(srcFile, destFile);
+        JavaCopier.copy(srcFile.toPath(), destFile.toPath());
     }
 
     @Test
@@ -64,7 +64,7 @@ public class JavaCopierTest {
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage(JavaCopier.ERROR_MSG_SRC_OR_DEST_NULL);
 
-        JavaCopier.copy(srcFile, destFile);
+        JavaCopier.copy(srcFile.toPath(), destFile.toPath());
     }
 
     @Test
@@ -75,7 +75,7 @@ public class JavaCopierTest {
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage(JavaCopier.ERROR_MSG_SRC_OR_DEST_NULL);
 
-        JavaCopier.copy(srcFile, destFile);
+        JavaCopier.copy(srcFile.toPath(), destFile.toPath());
     }
 
     @Test
@@ -86,7 +86,7 @@ public class JavaCopierTest {
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage(JavaCopier.ERROR_MSG_SRC_MUST_EXIST);
 
-        JavaCopier.copy(srcFile, destFile);
+        JavaCopier.copy(srcFile.toPath(), destFile.toPath());
     }
 
     @Test
@@ -98,7 +98,7 @@ public class JavaCopierTest {
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage(JavaCopier.ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
 
-        JavaCopier.copy(srcDir, destFile);
+        JavaCopier.copy(srcDir.toPath(), destFile.toPath());
     }
 
     @Test
@@ -106,7 +106,7 @@ public class JavaCopierTest {
         srcFile = createTempFileWithStandardContent("srcFile");
         destFile = new File("destFile");
 
-        JavaCopier.copy(srcFile, destFile, StandardCopyOption.REPLACE_EXISTING);
+        JavaCopier.copy(srcFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         assertTrue("Error, srcFile is not a canonical file", srcFile.isFile());
         assertTrue("Error, destFile is not a canonical file", destFile.isFile());
@@ -118,7 +118,7 @@ public class JavaCopierTest {
         srcFile = createTempFileWithContent("srcFile", "src content");
         destFile = createTempFileWithContent("destFile", "dest content");
 
-        JavaCopier.copy(srcFile, destFile, StandardCopyOption.REPLACE_EXISTING);
+        JavaCopier.copy(srcFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         assertTrue("Error, srcFile is not a canonical file", srcFile.isFile());
         assertTrue("Error, destFile is not a canonical file", destFile.isFile());
@@ -130,7 +130,7 @@ public class JavaCopierTest {
         srcFile = createTempFileWithStandardContent("srcFile");
         destFile = File.createTempFile("destFile", null);
 
-        JavaCopier.copy(srcFile, destFile);
+        JavaCopier.copy(srcFile.toPath(), destFile.toPath());
     }
 
     @Test
@@ -139,7 +139,7 @@ public class JavaCopierTest {
         destDir = new File("destDir");
         destDir.mkdir();
 
-        JavaCopier.copy(srcFile, destDir);
+        JavaCopier.copy(srcFile.toPath(), destDir.toPath());
 
         assertTrue("Error, srcFile is not a canonical file", srcFile.isFile());
         assertTrue("Error, destDir is not a directory", destDir.isDirectory());
@@ -161,6 +161,8 @@ public class JavaCopierTest {
     private File createTempFileWithContent(String prefix, String fileContent) throws IOException {
         File file = File.createTempFile(prefix, null);
         Files.write(file.toPath(), fileContent.getBytes());
+        // TODO: verify this code
+        file.deleteOnExit();
         return file;
     }
 

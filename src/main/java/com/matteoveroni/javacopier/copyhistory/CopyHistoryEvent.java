@@ -12,14 +12,14 @@ public class CopyHistoryEvent {
     private final Long id;
     private final Path src;
     private final Path dest;
-    private final boolean successful;
+    private final boolean isCopySuccessful;
     private final String exceptionMessage;
 
-    private CopyHistoryEvent(Path src, Path dest, boolean successful, String exceptionMessage) {
+    private CopyHistoryEvent(Path src, Path dest, boolean isCopySuccessful, String exceptionMessage) {
         this.id = CURRENT_ID;
         this.src = src;
         this.dest = dest;
-        this.successful = successful;
+        this.isCopySuccessful = isCopySuccessful;
         this.exceptionMessage = exceptionMessage;
         CURRENT_ID++;
     }
@@ -64,8 +64,8 @@ public class CopyHistoryEvent {
         return dest;
     }
 
-    public boolean isSuccessful() {
-        return successful;
+    public boolean isCopySuccessful() {
+        return isCopySuccessful;
     }
 
     public String getExceptionMessage() {

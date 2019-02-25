@@ -7,8 +7,7 @@ import com.matteoveroni.javacopier.copyhistory.CopyHistoryEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
 
 /**
@@ -70,6 +69,13 @@ public class JavaCopier {
         }
         copyStatus = new CopyStatusReport(src, dest, CopyStatusReport.CopyState.DONE, totalFiles, copyHistory, copyOptions);
         notifyCopyStatusToListener(copyStatus, copyListener);
+
+        // TODO: log copyStatus to a file. Now the code is hardcoded. Pass an outputstream to copy from outside
+        try (PrintWriter p = new PrintWriter(new FileOutputStream("/home/mavek/java-copier-log.txt", true))) {
+            p.println(copyStatus.toPrettyString());
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        }
         return copyStatus;
     }
 
@@ -97,7 +103,7 @@ public class JavaCopier {
 
     private static void notifyCopyStatusToListener(CopyStatusReport copyStatus, CopyListener copyListener) {
         if (copyListener != null) {
-            copyListener.onCopyCompleted(copyStatus);
+            copyListener.onCopyComplete(copyStatus);
         }
     }
 }

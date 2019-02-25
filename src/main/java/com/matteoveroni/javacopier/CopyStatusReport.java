@@ -14,8 +14,8 @@ import java.nio.file.Path;
 public class CopyStatusReport {
 
     private transient final Gson gson = new GsonBuilder()
-        .registerTypeHierarchyAdapter(Path.class, new PathToGsonConverter())
-        .create();
+            .registerTypeHierarchyAdapter(Path.class, new PathToGsonConverter())
+            .create();
 
     private transient final Gson prettygson = new GsonBuilder()
             .registerTypeHierarchyAdapter(Path.class, new PathToGsonConverter())
@@ -33,6 +33,8 @@ public class CopyStatusReport {
     private final Path src;
     private final Path dest;
     private final int totalFiles;
+    private final int copiedFiles;
+    private final int copiesFailed;
     private final CopyState copyState;
     private final double copyPercentage;
     private final FinalResult result;
@@ -45,18 +47,20 @@ public class CopyStatusReport {
         this.copyState = copyState;
         this.totalFiles = totalFiles;
         this.copyHistory = copyHistory;
+        this.copiedFiles = copyHistory.getCopiedFiles().size();
+        this.copiesFailed = copyHistory.getCopiesFailed().size();
         this.copyOptions = copyOptions;
         switch (copyState) {
 
             case DONE:
                 copyPercentage = 100.0;
-                if (copyHistory == null || copyHistory.getCopyErrors() == null) {
+                if (copyHistory == null || copyHistory.getCopiesFailed() == null) {
                     result = FinalResult.COPY_FAILED;
                     break;
                 }
-                if (copyHistory.getCopyErrors().size() >= totalFiles) {
+                if (copyHistory.getCopiesFailed().size() >= totalFiles) {
                     result = FinalResult.COPY_FAILED;
-                } else if (copyHistory.getCopyErrors().isEmpty()) {
+                } else if (copyHistory.getCopiesFailed().isEmpty()) {
                     result = FinalResult.COPY_SUCCESSFUL;
                 } else {
                     result = FinalResult.COPY_PARTIAL;
@@ -89,6 +93,14 @@ public class CopyStatusReport {
 
     public int getTotalFiles() {
         return totalFiles;
+    }
+
+    public int getCopiedFiles() {
+        return copiedFiles;
+    }
+
+    public int getCopiesFailed() {
+        return copiesFailed;
     }
 
     public CopyHistory getCopyHistory() {

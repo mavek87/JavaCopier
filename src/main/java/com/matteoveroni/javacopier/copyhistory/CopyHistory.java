@@ -10,17 +10,17 @@ import java.util.List;
 public class CopyHistory {
 
     private final List<CopyHistoryEvent> history = new ArrayList<>();
-    private final List<Path> filesCopied = new ArrayList<>();
-    private final List<Path> copyErrors = new ArrayList<>();
+    private final List<Path> copiedFiles = new ArrayList<>();
+    private final List<Path> copiesFailed = new ArrayList<>();
     private int analyzedFiles = 0;
 
     public final void addHistoryEvent(CopyHistoryEvent event) {
         history.add(event);
         Path src = event.getSrc();
-        if(event.isSuccessful()) {
-            filesCopied.add(src);
+        if(event.isCopySuccessful()) {
+            copiedFiles.add(src);
         } else {
-            copyErrors.add(src);
+            copiesFailed.add(src);
         }
         analyzedFiles++;
     }
@@ -29,12 +29,12 @@ public class CopyHistory {
         return history;
     }
 
-    public List<Path> getFilesCopied() {
-        return filesCopied;
+    public List<Path> getCopiedFiles() {
+        return copiedFiles;
     }
 
-    public List<Path> getCopyErrors() {
-        return copyErrors;
+    public List<Path> getCopiesFailed() {
+        return copiesFailed;
     }
 
     public int getAnalyzedFiles() {

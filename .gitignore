@@ -4,6 +4,7 @@
 /.gradle/
 /build/
 /out
+/classes
 /dist/
 JavaCopier.iml
 .*

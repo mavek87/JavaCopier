@@ -1,7 +1,6 @@
 package com.matteoveroni.javacopier;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -9,13 +8,13 @@ import org.junit.rules.ExpectedException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 
 import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Matteo Veroni
@@ -47,40 +46,35 @@ public class JavaCopierTest {
     }
 
     @Test
-    public void copySrcToNullDestFail() throws IOException {
+    public void copySrcToNullDestFails() throws IOException {
         srcFile = createTempFileWithStandardContent("srcFile");
-        destFile = null;
 
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage(JavaCopier.ERROR_MSG_SRC_OR_DEST_NULL);
 
-        JavaCopier.copy(srcFile.toPath(), destFile.toPath());
+        JavaCopier.copy(srcFile.toPath(), null);
     }
 
     @Test
-    public void copyNullSrcToDestFail() throws IOException {
-        srcFile = null;
+    public void copyNullSrcToExistingDestFails() throws IOException {
         destFile = File.createTempFile("destFile", null);
 
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage(JavaCopier.ERROR_MSG_SRC_OR_DEST_NULL);
 
-        JavaCopier.copy(srcFile.toPath(), destFile.toPath());
+        JavaCopier.copy(null, destFile.toPath());
     }
 
     @Test
-    public void copyNullSrcToNullDestFail() throws IOException {
-        srcFile = null;
-        destFile = null;
-
+    public void copyNullSrcToNullDestFails() throws IOException {
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage(JavaCopier.ERROR_MSG_SRC_OR_DEST_NULL);
 
-        JavaCopier.copy(srcFile.toPath(), destFile.toPath());
+        JavaCopier.copy(null, null);
     }
 
     @Test
-    public void copyNotCreatedSrcFileToDestFail() throws IOException {
+    public void copyNotExistingSrcFileToExistingDestFail() throws IOException {
         srcFile = new File("srcFile");
         destFile = createTempFileWithStandardContent("destFile");
 
@@ -90,17 +84,18 @@ public class JavaCopierTest {
         JavaCopier.copy(srcFile.toPath(), destFile.toPath());
     }
 
-    @Test
-    public void copySrcDirIntoFileDestFail() throws IOException {
-        srcDir = new File("srcDir");
-        srcDir.mkdir();
-        destFile = createTempFileWithStandardContent("destFile");
-
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(JavaCopier.ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
-
-        JavaCopier.copy(srcDir.toPath(), destFile.toPath());
-    }
+//    @Test
+//    @Ignore
+//    public void copySrcDirIntoFileDestFail() throws IOException {
+//        srcDir = new File("srcDir");
+//        srcDir.mkdir();
+//        destFile = createTempFileWithStandardContent("destFile");
+//
+//        expectedException.expect(IllegalArgumentException.class);
+//        expectedException.expectMessage(JavaCopier.ERROR_MSG_CANNOT_COPY_DIR_INTO_FILE);
+//
+//        JavaCopier.copy(srcDir.toPath(), destFile.toPath());
+//    }
 
     @Test
     public void copyFileToNotExistingFileWithReplaceCopyOption() throws IOException {
@@ -126,12 +121,15 @@ public class JavaCopierTest {
         assertTrue(isSameFile(srcFile.toPath(), destFile.toPath()));
     }
 
-    @Test(expected = FileAlreadyExistsException.class)
+    @Test
     public void copyFileToExistingFileWithoutReplaceCopyOptionFails() throws IOException {
         srcFile = createTempFileWithStandardContent("srcFile");
         destFile = File.createTempFile("destFile", null);
 
-        JavaCopier.copy(srcFile.toPath(), destFile.toPath());
+        CopyStatusReport copyStatusReport = JavaCopier.copy(srcFile.toPath(), destFile.toPath());
+
+        assertEquals(copyStatusReport.getFinalResult(), CopyStatusReport.FinalResult.COPY_FAILED);
+        assertTrue(copyStatusReport.getCopiedFiles() == 0);
     }
 
     @Test
@@ -161,7 +159,6 @@ public class JavaCopierTest {
 
     private File createTempFileWithContent(String prefix, String fileContent) throws IOException {
         File file = File.createTempFile(prefix, null);
-        file.deleteOnExit();
         Files.write(file.toPath(), fileContent.getBytes());
         return file;
     }

@@ -75,12 +75,12 @@ public class JavaCopier {
                 }
             }
             if (!isCopyMultiple) {
-                registerSingleCopySuccessToHistory(src, dest, copyHistory);
+                copyHistory.registerCopySuccessEventInHistory(src, dest);
             }
         } catch (IOException ex) {
             LOG.debug("Exception: " + ex.toString());
             if (!isCopyMultiple) {
-                registerSingleCopyFailureToHistory(src, dest, ex, copyHistory);
+                copyHistory.registerCopyFailEventInHistory(src, dest, ex);
             }
         }
         copyStatus = new CopyStatusReport(src, dest, CopyStatusReport.CopyState.DONE, totalFiles, copyHistory, copyOptions);
@@ -100,22 +100,6 @@ public class JavaCopier {
             filesCount = 0;
         }
         return filesCount;
-    }
-
-    private static void registerSingleCopySuccessToHistory(Path src, Path dest, CopyHistory copyHistory) {
-        copyHistory.registerHistoryEvent(
-                new CopyHistoryEvent.Builder(src, dest)
-                        .setSuccessful()
-                        .build()
-        );
-    }
-
-    private static void registerSingleCopyFailureToHistory(Path src, Path dest, IOException ex, CopyHistory copyHistory) {
-        copyHistory.registerHistoryEvent(
-                new CopyHistoryEvent.Builder(src, dest)
-                        .setFailed(ex)
-                        .build()
-        );
     }
 
     private static void notifyCopyStatusToListener(CopyStatusReport copyStatus, CopyListener copyListener) {

@@ -3,7 +3,6 @@ package com.matteoveroni.javacopier.filevisitors;
 import com.matteoveroni.javacopier.CopyListener;
 import com.matteoveroni.javacopier.CopyStatusReport;
 import com.matteoveroni.javacopier.copyhistory.CopyHistory;
-import com.matteoveroni.javacopier.copyhistory.CopyHistoryEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

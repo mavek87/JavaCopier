@@ -49,6 +49,8 @@ public class JavaCopier {
     }
 
     private static CopyStatusReport executeCopy(Path src, Path dest, CopyListener copyListener, Integer totalFiles, OutputStream logReportOutputStream, CopyOption[] copyOptions) {
+        src = src.toAbsolutePath();
+        dest = dest.toAbsolutePath();
         LOG.debug("Copy from src: " + src + " to dest: " + dest + " started");
         CopyHistory copyHistory = new CopyHistory();
         CopyStatusReport copyStatus;

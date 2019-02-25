@@ -33,8 +33,8 @@ public class CopyStatusReport {
     private final Path src;
     private final Path dest;
     private final int totalFiles;
-    private final int copiedFiles;
-    private final int copiesFailed;
+    private final int numberOfCopiedFiles;
+    private final int numberOfCopiesFailed;
     private final CopyState copyState;
     private final double copyPercentage;
     private final FinalResult result;
@@ -47,8 +47,8 @@ public class CopyStatusReport {
         this.copyState = copyState;
         this.totalFiles = totalFiles;
         this.copyHistory = copyHistory;
-        this.copiedFiles = copyHistory.getCopiedFiles().size();
-        this.copiesFailed = copyHistory.getCopiesFailed().size();
+        this.numberOfCopiedFiles = copyHistory.getCopiedFiles().size();
+        this.numberOfCopiesFailed = copyHistory.getCopiesFailed().size();
         this.copyOptions = copyOptions;
         switch (copyState) {
 
@@ -95,12 +95,12 @@ public class CopyStatusReport {
         return totalFiles;
     }
 
-    public int getCopiedFiles() {
-        return copiedFiles;
+    public int getNumberOfCopiedFiles() {
+        return numberOfCopiedFiles;
     }
 
-    public int getCopiesFailed() {
-        return copiesFailed;
+    public int getNumberOfCopiesFailed() {
+        return numberOfCopiesFailed;
     }
 
     public CopyHistory getCopyHistory() {

@@ -16,10 +16,15 @@ import java.nio.file.*;
  */
 public class JavaCopier {
 
-    static final CopyOption[] DEFAULT_COPY_OPTIONS = new CopyOption[]{StandardCopyOption.COPY_ATTRIBUTES};
     static final String ERROR_MSG_SRC_OR_DEST_NULL = "src and dest cannot be null";
-    static final String ERROR_MSG_SRC_MUST_EXIST = "src must exist";
+    static final String ERROR_MSG_SRC_MUST_EXIST = "src must exists";
+
+    private static final CopyOption[] DEFAULT_COPY_OPTIONS = new CopyOption[]{StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING};
     private static final Logger LOG = LoggerFactory.getLogger(JavaCopier.class);
+
+    private JavaCopier() {
+        //  PRIVATE CONSTRUCTOR
+    }
 
     public static CopyStatusReport copy(Path src, Path dest, CopyOption... copyOptions) throws IllegalArgumentException {
         return copy(src, dest, null, null, copyOptions);

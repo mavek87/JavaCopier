@@ -15,9 +15,13 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
+/**
+ * @author Matteo Veroni
+ */
 public class PrintFileVisitor implements FileVisitor<Path> {
 
     private final static Logger LOG = LoggerFactory.getLogger(PrintFileVisitor.class);
+
     private final Path rootSrc;
     private final Path rootDest;
     private final PrintWriter printWriter;

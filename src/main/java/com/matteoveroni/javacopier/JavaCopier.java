@@ -53,6 +53,19 @@ public class JavaCopier {
         return executeCopy(src, dest, copyListener, totalFiles, logReportOutputStream, copyOptions);
     }
 
+    public static Integer calculateFilesCount(Path src) {
+        int filesCount;
+        try {
+            CountFileVisitor fileCounter = new CountFileVisitor();
+            Files.walkFileTree(src, fileCounter);
+            filesCount = fileCounter.getFilesCount();
+        } catch (IOException ex) {
+            LOG.debug("Error during files count. This should not happen because fileCounterVisitor doesnt throw ioexceptions. ex: " + ex);
+            filesCount = 0;
+        }
+        return filesCount;
+    }
+
     private static CopyStatusReport executeCopy(Path src, Path dest, CopyListener copyListener, Integer totalFiles, OutputStream logReportOutputStream, CopyOption[] copyOptions) {
         src = src.toAbsolutePath();
         dest = dest.toAbsolutePath();
@@ -94,19 +107,6 @@ public class JavaCopier {
         notifyCopyStatusToListener(copyStatus, copyListener);
         logCopyReportStatusToOutputStream(logReportOutputStream, copyStatus);
         return copyStatus;
-    }
-
-    private static Integer calculateFilesCount(Path src) {
-        int filesCount;
-        try {
-            CountFileVisitor fileCounter = new CountFileVisitor();
-            Files.walkFileTree(src, fileCounter);
-            filesCount = fileCounter.getFilesCount();
-        } catch (IOException ex) {
-            LOG.debug("Error during files count. This should not happen because fileCounterVisitor doesnt throw ioexceptions. ex: " + ex);
-            filesCount = 0;
-        }
-        return filesCount;
     }
 
     private static void notifyCopyStatusToListener(CopyStatusReport copyStatus, CopyListener copyListener) {
